@@ -62,7 +62,7 @@ class Pangenome:
 		self.count_genes = 0
 		try: os.makedirs(self.tmp)
 		except: pass
-	
+
 	def store_genes(self):
 		""" Store genes from all genomes """
 		self.genes = {}
@@ -72,6 +72,9 @@ class Pangenome:
 				if str(rec.seq) == '' or str(rec.id) in ['', '|']:
 					continue
 				else:
+					# BORIS: *BIO* If rec.id = gene.id, how come there are no collisions?
+					# That is, if in the ffns of two different species we have two
+					# genes with the same id but different sequence, we lose info.
 					gene = Gene(rec.id)
 					gene.genome_id = genome.id
 					gene.seq = str(rec.seq).upper()
@@ -96,16 +99,16 @@ Gene clusters (90%% identity): %(centroids_90)s
 Gene clusters (85%% identity): %(centroids_85)s
 Gene clusters (80%% identity): %(centroids_80)s
 Gene clusters (75%% identity): %(centroids_75)s
-		
+
 Output files
 ############
 genes.ffn
   all genes from specified genomes
-  
+
 centroids.ffn
   gene sequences from 99%% identity gene clusters
   used for recruiting metagenomic reads
-  
+
 gene_info.txt
   information for all genes from genes.ffn
   the fields centroid_{99,95,90,95,80,75} indicate mappings between gene_id and gene clusters
@@ -115,6 +118,7 @@ gene_info.txt
 	def write_genes(self):
 		""" Concatenate all genes from pangenome into sequence file """
 		file = utility.iopen('%s/genes.ffn' % self.dir, 'w')
+		# BORIS: Could be better perhaps if the order here were deterministic.
 		for gene in self.genes.values():
 			file.write('>%s\n%s\n' % (gene.id, gene.seq))
 		file.close()
@@ -152,7 +156,7 @@ gene_info.txt
 				self.stats['centroids_%s' % pid] += 1
 			else:
 				continue
-			
+
 	def store_cluster_membership(self):
 		""" Map gene to 99% ID centroids at each clustering %ID cutoff """
 		for gene in self.genes.values():
@@ -258,27 +262,27 @@ def build_repgenome_db(args, genomes, species):
 		shutil.copy(sp.genomes[sp.rep_genome].files['genes'], '%s/genome.features' % outdir)
 		#build_features_file(sp, fpath='%s/genome.features' % outdir)
 		shutil.copy(sp.genomes[sp.rep_genome].files['fna'], '%s/genome.fna' % outdir)
-		
+
 def find_gene(gene, contigs):
 	fwd_gene = str(gene).upper()
-	rev_gene = str(gene.reverse_complement()).upper()	
+	rev_gene = str(gene.reverse_complement()).upper()
 	for id, contig in contigs:
 		for seq, strand in [(fwd_gene, '+'), (rev_gene, '-')]:
-			try: 
+			try:
 				start = contig.index(seq) + 1
 				end = start + len(seq) - 1
 				return (id, start, end, strand)
 			except:
 				continue
 	sys.exit("Gene not found")
-				
+
 def build_features_file(sp, fpath):
-	
-	contigs = [] 
+
+	contigs = []
 	with open(sp.genomes[sp.rep_genome].files['fna']) as f:
 		for contig in Bio.SeqIO.parse(f, 'fasta'):
 			contigs.append([contig.id, str(contig.seq).upper()])
-	
+
 	features = []
 	with open(sp.genomes[sp.rep_genome].files['ffn']) as f:
 		for gene in Bio.SeqIO.parse(f, 'fasta'):
@@ -291,12 +295,12 @@ def build_features_file(sp, fpath):
 #					contigs = contigs[1:]
 #				else:
 #					break
-					
+
 	with open(fpath, 'w') as f:
 		f.write('\t'.join(['gene_id', 'scaffold_id', 'start', 'end', 'strand'])+'\n')
 		for r in features:
 			f.write('\t'.join([str(_) for _ in r])+'\n')
-		
+
 
 def build_pangenome_db(args, species):
 	for sp in species:
@@ -320,7 +324,7 @@ def write_species_info(args, species):
 	for sp in species:
 		values = [str(_) for _ in [sp.id, sp.rep_genome, sp.ngenomes]]
 		outfile.write('\t'.join(values)+'\n')
-		
+
 def write_genome_info(args, species):
 	outfile = utility.iopen('%s/genome_info.txt' % args['outdir'], 'w')
 	header = ['genome_id', 'species_id', 'rep_genome']
@@ -420,7 +424,7 @@ class MarkerGenes:
 		command = "hs-blastn index %s " % fasta
 		process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env={'PATH':sys.path})
 		utility.check_exit_code(process, command)
-	
+
 	def parse_fasta(self, p_in):
 		""" Return lookup of seq_id to sequence for PATRIC genes """
 		seqs = {}
@@ -435,7 +439,7 @@ class MarkerGenes:
 		command += " %s/phyeco.fa " % self.dir
 		process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 		utility.check_exit_code(process, command)
-	
+
 	def build_mapping_cutoffs(self):
 		cutoffs = {
 			'B000032':95.50,
@@ -460,16 +464,16 @@ class MarkerGenes:
 		outfile.close()
 
 def run_pipeline(args):
-		
+
 	print("Reading species & genome info")
 	species = read_species(args)
 	write_species_info(args, species)
 	genomes = read_genomes(species)
 	write_genome_info(args, species)
-	
+
 	print("\nBuilding pangenome database")
 	build_pangenome_db(args, species)
-				
+
 	print("\nBuilding representative genome database")
 	build_repgenome_db(args, genomes, species)
 
@@ -480,7 +484,3 @@ def run_pipeline(args):
 	if args['compress']:
 		print("Compressing data\n")
 		compress(args['outdir'])
-
-
-
-

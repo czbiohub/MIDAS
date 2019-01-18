@@ -8,6 +8,54 @@ import io, os, stat, sys, resource, gzip, platform, bz2, Bio.SeqIO
 
 __version__ = '1.3.0'
 
+# Suggestions by Boris Dimitrov
+#
+# 1.  Use Docker to build and package dependencies.  Docker ensures the right
+#     version of every dependency from MIDAS' point of view, all the way
+#     down to a specific Linux distribution -- even if the host itself runs
+#     a totally different operating system.  Docker can improve robustness
+#     and performance over MIDAS' current approach of copying around
+#     pre-built but dynamically linked binaries.
+#
+#     MIDAS can assume it has the requested version of everything, delete all
+#     its dependency and version management code, and focus on crunching DNA.
+#
+#     The only compromise is that on Mac, I/O under Docker can be a bit
+#     slower.  But that has continued to improve.
+#
+#     Question:  There is already a dockerized version
+#                https://github.com/FredHutch/docker-midas
+#                why not extend it to cover all use cases?
+#
+# 2. Use "with open(...) as file:  process(file)" pattern to ensure
+#    all files are closed even if an exception occurs.
+#
+# 3. Avoid "return" in the middle of a long function or in nested
+#    control statements.
+#
+# 4. Avoid duplicating system code like "which".  Just use the
+#    system "which" if you need that functionality.  Or, are you trying
+#    to support platforms without "bash"?  Docker to the resque -
+#    it can ensure "the system" always has "bash".
+#
+# 5. With subprocess, do not use PIPE argument unless you are reading
+#    from the pipe -- or your program will deadlock when the 4KB buffers
+#    fill up.  You can use /dev/null to drop the output, or use
+#    check_output() or communicate() to capture it.  In the specific
+#    cases below this isn't likely to happen, but, it's still best to
+#    avoid the pattern because any such code may get copy-pasted and
+#    repurposed by a beginner who might be less prepared to debug this
+#    type of system-dependent issue (page size and buffer size can vary
+#    across systems and are sometimes tweaked for performance reasons).
+#
+# 6. Avoid BioPython.SeqIO or use it amost once to read every sequence
+#    but then convert to string right away.  That simplifies and speeds up
+#    downstream work.  For example, we won't have to list(...) or str(...)
+#    the sequences any time we process them -- and we save allocation
+#    costs as well as traversing inefficient fasta representation.  Modern
+#    systems typically have sufficient memory for this, but I understand
+#    if for some use cases it won't be enough.
+
 def which(program):
 	""" Mimics unix 'which' function """
 	def is_exe(fpath):
@@ -35,7 +83,14 @@ def print_copyright(log=None):
 	if log is not None: log.write('\n'.join(lines)+'\n')
 	sys.stdout.write('\n'.join(lines)+'\n')
 
+# BORIS: Experience suggests that dynamic assignment of tasks to workes will
+# outperform a static uniform assignment like the one below.  Resource usage
+# in a dynamic scheduler is typically constrained via semaphores acquired
+# in a consistent partial order as a technique to prevent deadlock.  It's all
+# simpler than it sounds, not much harder than what we have below.  I can show
+# an example if there is interest.
 def batch_samples(samples, threads):
+	# BORIS:  Execute those asserts.
 	""" Split up samples into batches
 		assert: batch_size * threads < max_open
 		assert: len(batches) == threads
@@ -43,7 +98,16 @@ def batch_samples(samples, threads):
 	import resource
 	import math
 	max_open = int(0.8 * resource.getrlimit(resource.RLIMIT_NOFILE)[0]) # max open files on system
+	# BORIS: I think the comment below means "a batch size over this threshold would put us in danger
+	# of exceeding the system limit on open files".   It is indeed an upper bound on the set of
+	# desirable batch sizes, and as such, reasonably called "max_size".
 	max_size = math.floor(max_open/threads) # max batch size to avoid exceeding max_open
+
+	# BORIS:  I think the comment below means "a batch size above this threshold would leave us
+	# with fewer batches than threads, which is undesirable".  Since that's an upper bound
+	# on the set of desirable batch sizes, calling it "min_size" confused me a lot.
+	# I would perhaps rename "min_size" to "max_size_for_threads", and rename "max_size" above
+	# to "max_size_for_files".  Then "size = min(max_size_for_threads, max_size_for_files)".
 	min_size = math.ceil(len(samples)/float(threads)) # min batch size to use all threads
 	size = min(min_size, max_size)
 	batches = []
@@ -56,6 +120,7 @@ def batch_samples(samples, threads):
 	if len(batch) > 0: batches.append(batch)
 	return batches
 
+# BORIS:  Experience suggests that it's best to delete deprecated code.
 def parallel_old(function, list, threads):
 	""" Run function using multiple threads """
 	from multiprocessing import Process
@@ -83,29 +148,40 @@ def parallel(function, argument_list, threads):
 	import multiprocessing as mp
 	import signal
 	import time
-	
+
 	def init_worker():
 		signal.signal(signal.SIGINT, signal.SIG_IGN)
-	
+
 	pool = mp.Pool(int(threads), init_worker)
-	
+
 	try:
 		results = []
 		for arguments in argument_list:
 			p = pool.apply_async(function, args=arguments)
 			results.append(p)
 		pool.close()
-		
+
+        # BORIS:  This could benefit from pool.join() so the loop below won't have
+		# to make multiple iterations, unless the objective is to introduce timeout
+		# in that loop at some point.
 		while True:
 			if all(r.ready() for r in results):
+				# BORIS:  If just one of the async invocations fails, r.get could raise
+				# an exception.
 				return [r.get() for r in results]
 			time.sleep(1)
 
+    # BORIS:  This "except" should handle all exceptions not just keyboard interrupt,
+	# and re-raise the exception that was actually thrown.  That can be accomplished
+	# by replacing "except KeyboardInterrupt" with just "except", and by replacing
+	# "sys.exit(...)" with just "raise".
 	except KeyboardInterrupt:
 		pool.terminate()
 		pool.join()
 		sys.exit("\nKeyboardInterrupt")
 
+
+# BORIS: Dockerize and delete this function, as per the comment at the top.
 def add_executables(args):
 	""" Identify relative file and directory paths """
 	src_dir = os.path.dirname(os.path.abspath(__file__))
@@ -115,7 +191,7 @@ def add_executables(args):
 	args['bowtie2-build'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2-build'])
 	args['bowtie2'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2'])
 	args['samtools'] = '/'.join([main_dir, 'bin', platform.system(), 'samtools'])
-	
+
 	for arg in ['hs-blastn', 'stream_seqs', 'bowtie2-build', 'bowtie2', 'samtools']:
 		if not os.path.isfile(args[arg]):
 			sys.exit("\nError: File not found: %s\n" % args[arg])
@@ -253,6 +329,8 @@ def read_genes(species_id, db):
 	else:
 		sys.exit("\nError: rep genome for %s not found\n" % species_id)
 	for gene in parse_file(fpath):
+		# BORIS:  Replace the next 3 lines with
+		#    if gene.get('gene_type') in (None, 'CDS'):
 		if 'gene_type' in gene and gene['gene_type'] != 'CDS':
 			continue
 		else:
@@ -260,14 +338,14 @@ def read_genes(species_id, db):
 			gene['end'] = int(gene['end'])
 			gene['seq'] = get_gene_seq(gene, genome[gene['scaffold_id']])
 			genes.append(gene)
-	
+
 	# sort genes
 	coords = [[gene['scaffold_id'], gene['start'], -gene['end']] for gene in genes]
 	indexes = sorted(range(len(coords)), key=lambda k: coords[k])
 	sorted_genes = [genes[i] for i in indexes]
-			
+
 	return {'list':sorted_genes, 'index':0}
-	
+
 
 def read_genome(db, species_id):
 	""" Read in representative genome from reference database """
@@ -280,7 +358,7 @@ def read_genome(db, species_id):
 		sys.exit("\nError: rep genome for %s not found\n" % species_id)
 	infile = iopen(fpath)
 	genome = {}
-	for r in Bio.SeqIO.parse(infile, 'fasta'):
+	for r in Bio.SeqIO.parse(infile, 'fasta'):   #  BORIS:  Found SeqIO.parse to be slow in the past.
 		genome[r.id] = r.seq.upper()
 	infile.close()
 	return genome
@@ -301,10 +379,23 @@ def complement(base):
 
 def rev_comp(seq):
 	""" Reverse complement sequence """
+	# BORIS:  This is elegant, but a couple of list constructors
+	# appear redundant.  Removing those could improve perf.
+	#   1.  Why put list() around seq[::-1]?  Faster without?
+	#   2.  Change join([...]) to just join(...) for perf.
 	return(''.join([complement(base) for base in list(seq[::-1])]))
 
 def translate(codon):
 	""" Translate individual codon """
+	# BORIS: This function would run faster if the "codontable" initializer
+	# became a default arg, like so:
+	#
+	#    def transalte(codon, codontable={....}):
+	#
+	# That way the translation table would be constructed once, when the interpreter
+	# first loads this module.  As a variable, a separate instance of the table
+	# would be allocated on the heap for each function invocation.
+	#
 	codontable = {
 	'ATA':'I', 'ATC':'I', 'ATT':'I', 'ATG':'M',
 	'ACA':'T', 'ACC':'T', 'ACG':'T', 'ACT':'T',
@@ -323,6 +414,9 @@ def translate(codon):
 	'TAC':'Y', 'TAT':'Y', 'TAA':'_', 'TAG':'_',
 	'TGC':'C', 'TGT':'C', 'TGA':'_', 'TGG':'W',
 	}
+	# I imagine the "str(codon)" here is because BioPython doesn't represent the
+	# object as a string?  It might actually improve speed and readability to
+	# just convert everything to string when it is first read from file.
 	return codontable[str(codon)]
 
 def index_replace(codon, allele, pos, strand):
