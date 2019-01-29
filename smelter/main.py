@@ -60,7 +60,7 @@ def smelt(argv):
             s_species_alt_id = s['species_alt_id']
             s_pangenome = f"{pangenomes}/{s_species_alt_id}/centroids.fa"
             s_tempfile = f"{outdir}/temp_{s_species_alt_id}.fa"
-            s_header_xform = f"sed 's=^>=>{s_species_alt_id}|=' {s_pangenome} > {s_tempfile} && cat {s_tempfile} >> {outdir}/pangenomes.fa && rm {s_tempfile} && echo SUCCEEDED || echo FAILED"
+            s_header_xform = f"sed 's=^>=>{s_species_alt_id}|=' {s_pangenome} > {s_tempfile} && cat {s_tempfile} >> {outdir}/temp_pangenomes.fa && rm {s_tempfile} && echo SUCCEEDED || echo FAILED"
             status = backtick(s_header_xform)
             assert status == "SUCCEEDED"
             count_successes += 1
@@ -72,14 +72,26 @@ def smelt(argv):
                 raise
         finally:
             ticker.advance(1)
-    if failures:
-        failed_species_alt_ids = [s['species_alt_id'] for s in failures]
-        tsprint(f"Ignoring {len(failures)} failed species: {json.dumps(failed_species_alt_ids, indent=4)}")
-        tsprint("For more informaiton on each failed species, see its corresponding temp file.")
-        tsprint(f"Only {count_successes} of {len(species)} species were processed successfully.")
-    else:
+    failed_species_alt_ids = [s['species_alt_id'] for s in failures]
+    if not failures:
         tsprint(f"All {len(species)} species were processed successfully.")
-
+    else:
+        tsprint(f"Collation of {len(failures)} species failed.  Those are missing from the final pangenomes.fa")
+    # Create output file only on success.
+    # Dump stats in json.
+    collation_status = {
+        "comment": f"Collation into pangenomes.fa succeeded on {time.asctime()}.",
+        "successfully_collated_species_count": count_successes,
+        "failed_species_count": len(failures),
+        "total_species_count": len(species),
+        "failed_species_alt_ids": failed_species_alt_ids
+    }
+    collation_status_str = json.dumps(collation_status, indent=4)
+    with open(f"{outdir}/pangenomes_collation_status.json", "w") as pcs:
+        chars_written = pcs.write(collation_status_str)
+        assert chars_written == len(collation_status_str)
+        tsprint(collation_status_str)
+    rename(f"{outdir}/temp_pangenomes.fa", f"{outdir}/pangenomes.fa")
 
 def main():
     try:
