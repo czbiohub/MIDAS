@@ -8,6 +8,10 @@ import sys, os, subprocess, shutil, csv
 import Bio.SeqIO, pysam, numpy as np
 from time import time
 from midas import utility
+from smelter.iggdb import IGGdb
+from smelter.utilities import tsprint
+from multiprocessing import Queue
+import json
 
 class Species:
 	""" Base class for species """
@@ -21,20 +25,15 @@ class Species:
 		self.total_depth = 0
 		self.fraction_covered = 0
 		self.mean_coverage = 0
-		
-	def fetch_paths(self, ref_db):
-		indir =  '%s/rep_genomes/%s' % (ref_db, self.id)
-		for ext in ['', '.gz']:
-			for type in ['fna', 'features']:
-				path = '%s/genome.%s%s' % (indir, type, ext)
-				if os.path.isfile(path):
-					self.paths[type] = path
+
+	def fetch_paths(self, iggdb):
+		self.paths['fna'] = iggdb.get_species(species_id=self.id)['representative_genome_path']
 
 class Contig:
 	""" Base class for contig """
 	def __init__(self, id):
 		self.id = id
-		
+
 def initialize_species(args):
 	species = {}
 	splist = '%s/snps/species.txt' % args['outdir']
@@ -48,8 +47,9 @@ def initialize_species(args):
 		for line in open(splist):
 			id = line.rstrip()
 			species[id] = Species(id)
+	iggdb = args['iggdb']
 	for sp in species.values():
-		sp.fetch_paths(ref_db=args['db'])
+		sp.fetch_paths(iggdb)
 	return species
 
 def initialize_contigs(species):
@@ -65,7 +65,7 @@ def initialize_contigs(species):
 			contigs[contig.id] = contig
 		infile.close()
 	return contigs
-	
+
 def build_genome_db(args, species):
 	""" Build FASTA and BT2 database of representative genomes """
 	import Bio.SeqIO
@@ -104,14 +104,14 @@ def genome_align(args):
 	if args['trim']: command += '--trim3 %s ' % args['trim'] # trim 3'
 	command += '--%s' % args['speed'] # alignment speed
 	command += '-local ' if args['mode'] == 'local' else ' ' # global/local alignment
-	command += '--threads %s ' % args['threads'] 
+	command += '--threads %s ' % args['threads']
 	command += '-f ' if args['file_type'] == 'fasta' else '-q ' # input type
 	if args['m2']: # -1 and -2 contain paired reads
-		command += '-1 %s -2 %s ' % (args['m1'], args['m2']) 
+		command += '-1 %s -2 %s ' % (args['m1'], args['m2'])
 	elif args['interleaved']: # -1 contains paired reads
-		command += '--interleaved %s ' % args['m1'] 
+		command += '--interleaved %s ' % args['m1']
 	else: # -1 contains unpaired reads
-		command += '-U %s ' % args['m1'] 
+		command += '-U %s ' % args['m1']
 	# Pipe to samtools
 	command += '| %s view -b - ' % args['samtools'] # convert to bam
 	command += '--threads %s ' % args['threads']
@@ -138,66 +138,64 @@ def index_bam(args):
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
 
-def keep_read(aln):
-	global aln_stats, global_args
+def keep_read_work(aln, my_args, aln_stats):
 	aln_stats['aligned_reads'] += 1
 	# align and query length
 	align_len = len(aln.query_alignment_sequence)
 	query_len = aln.query_length
 	# min pid filter
-	if 100*(align_len-dict(aln.tags)['NM'])/float(align_len) < global_args['mapid']:
+	if 100*(align_len-dict(aln.tags)['NM'])/float(align_len) < my_args['mapid']:
 		return False
 	# min read quality filter
-	elif np.mean(aln.query_qualities) < global_args['readq']:
+	elif np.mean(aln.query_qualities) < my_args['readq']:
 		return False
 	# min map quality filter
-	elif aln.mapping_quality < global_args['mapq']:
+	elif aln.mapping_quality < my_args['mapq']:
 		return False
 	# min aln cov filter
-	elif align_len/float(query_len)  < global_args['aln_cov']:
+	elif align_len/float(query_len)  < my_args['aln_cov']:
 		return False
 	# read passes all filters
 	else:
 		aln_stats['mapped_reads'] += 1
 		return True
-	
+
+
 def species_pileup(args, species_id, contigs):
-	
-	# Set global variables for read filtering
-	global global_args # need global for keep_read function
-	global_args = args
 
 	# summary stats
-	global aln_stats
 	aln_stats = {'genome_length':0,
 				 'total_depth':0,
 				 'covered_bases':0,
 				 'aligned_reads':0,
 				 'mapped_reads':0}
-	
+
+	def keep_read(x):
+		return keep_read_work(x, args, aln_stats)
+
 	# open outfiles
 	out_path = '%s/snps/output/%s.snps.gz' % (args['outdir'], species_id)
 	out_file = utility.iopen(out_path, 'w')
 	header = ['ref_id', 'ref_pos', 'ref_allele', 'depth', 'count_a', 'count_c', 'count_g', 'count_t']
 	out_file.write('\t'.join(header)+'\n')
-	
+
 	# compute coverage
 	bampath = '%s/snps/temp/genomes.bam' % args['outdir']
 	with pysam.AlignmentFile(bampath, 'rb') as bamfile:
 		for contig_id in sorted(list(contigs.keys())):
-		
+
 			contig = contigs[contig_id]
-		
-			if contig.species_id != species_id: 
+
+			if contig.species_id != species_id:
 				continue
-						
+
 			counts = bamfile.count_coverage(
-				contig.id, 
-				start=0, 
-				end=contig.length, 
-				quality_threshold=args['baseq'], 
+				contig.id,
+				start=0,
+				end=contig.length,
+				quality_threshold=args['baseq'],
 				read_callback=keep_read)
-				
+
 			for i in range(0, contig.length):
 				ref_pos = i+1
 				ref_allele = contig.seq[i]
@@ -211,11 +209,13 @@ def species_pileup(args, species_id, contigs):
 				aln_stats['genome_length'] += 1
 				aln_stats['total_depth'] += depth
 				if depth > 0: aln_stats['covered_bases'] += 1
-		
+
 	out_file.close()
-	return (species_id, aln_stats)
-				
-	
+	tsprint(json.dumps({species_id: aln_stats}, indent=4))
+	global ALN_STATS_QUEUE
+	ALN_STATS_QUEUE.put((species_id, aln_stats))
+
+
 def pysam_pileup(args, species, contigs):
 	start = time()
 	print("\nCounting alleles")
@@ -225,10 +225,16 @@ def pysam_pileup(args, species, contigs):
 	argument_list = []
 	for species_id in species:
 		argument_list.append([args, species_id, contigs])
-	aln_stats = utility.parallel(species_pileup, argument_list, args['threads'])
-	
+
+	global ALN_STATS_QUEUE
+	ALN_STATS_QUEUE = Queue(len(species))
+	#utility.parallel(species_pileup, argument_list, args['threads'], no_results=True)
+	for args, species_id, contigs in argument_list:
+		species_pileup(args, species_id, contigs)
+
 	# update alignment stats for species objects
-	for species_id, stats in aln_stats:
+	while not ALN_STATS_QUEUE.empty():
+		species_id, stats = ALN_STATS_QUEUE.get()
 		sp = species[species_id]
 		sp.genome_length = stats['genome_length']
 		sp.covered_bases = stats['covered_bases']
@@ -236,21 +242,21 @@ def pysam_pileup(args, species, contigs):
 		sp.aligned_reads = stats['aligned_reads']
 		sp.mapped_reads = stats['mapped_reads']
 		if sp.genome_length > 0:
-			sp.fraction_covered = sp.covered_bases/float(sp.genome_length) 	
+			sp.fraction_covered = sp.covered_bases/float(sp.genome_length)
 		if sp.covered_bases > 0:
-			sp.mean_coverage = sp.total_depth/float(sp.covered_bases) 
-		
+			sp.mean_coverage = sp.total_depth/float(sp.covered_bases)
+
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
-				
+
 
 def snps_summary(args, species):
 	""" Get summary of mapping statistics """
-	
+
 	fields = ['species_id', 'genome_length', 'covered_bases', 'fraction_covered', 'mean_coverage', 'aligned_reads', 'mapped_reads']
 	outfile = open(args['outdir'] + '/snps/summary.txt', 'w')
 	outfile.write('\t'.join(fields)+'\n')
-	
+
 	for sp in species.values():
 		outfile.write(sp.id+'\t')
 		outfile.write(str(sp.genome_length)+'\t')
@@ -267,15 +273,18 @@ def remove_tmp(args):
 
 def run_pipeline(args):
 	""" Run entire pipeline """
-		
+
 	# Initialize reference data
 	print("\nReading reference data")
 	start = time()
+	if 'db' in args:
+		iggdb = IGGdb(args['db'])
+		args['iggdb'] = iggdb
 	species = initialize_species(args)
 	contigs = initialize_contigs(species)
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
-	
+
 	# Build genome database for selected species
 	if args['build_db']:
 		print("\nBuilding database of representative genomes")
@@ -303,4 +312,3 @@ def run_pipeline(args):
 
 	# Optionally remove temporary files
 	if args['remove_temp']: remove_tmp(args)
-
