@@ -11,6 +11,7 @@ from midas import utility
 from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
 from multiprocessing import Queue
+import multiprocessing
 import json
 
 class Species:
@@ -161,7 +162,10 @@ def keep_read_work(aln, my_args, aln_stats):
 		return True
 
 
-def species_pileup(args, species_id, contigs):
+def species_pileup(species_id, contigs):
+
+	global global_args
+	args = global_args
 
 	# summary stats
 	aln_stats = {'genome_length':0,
@@ -171,7 +175,7 @@ def species_pileup(args, species_id, contigs):
 				 'mapped_reads':0}
 
 	def keep_read(x):
-		return keep_read_work(x, args, aln_stats)
+		return keep_read_work(x, global_args, aln_stats)
 
 	# open outfiles
 	out_path = '%s/snps/output/%s.snps.gz' % (args['outdir'], species_id)
@@ -186,25 +190,25 @@ def species_pileup(args, species_id, contigs):
 
 			contig = contigs[contig_id]
 
-			if contig.species_id != species_id:
+			if contig['species_id'] != species_id:
 				continue
 
 			counts = bamfile.count_coverage(
-				contig.id,
+				contig_id,
 				start=0,
-				end=contig.length,
+				end=contig['length'],
 				quality_threshold=args['baseq'],
 				read_callback=keep_read)
 
-			for i in range(0, contig.length):
+			for i in range(0, contig['length']):
 				ref_pos = i+1
-				ref_allele = contig.seq[i]
+				ref_allele = contig['seq'][i]
 				depth = sum([counts[_][i] for _ in range(4)])
 				count_a = counts[0][i]
 				count_c = counts[1][i]
 				count_g = counts[2][i]
 				count_t = counts[3][i]
-				row = [contig.id, ref_pos, ref_allele, depth, count_a, count_c, count_g, count_t]
+				row = [contig_id, ref_pos, ref_allele, depth, count_a, count_c, count_g, count_t]
 				out_file.write('\t'.join([str(_) for _ in row])+'\n')
 				aln_stats['genome_length'] += 1
 				aln_stats['total_depth'] += depth
@@ -212,8 +216,7 @@ def species_pileup(args, species_id, contigs):
 
 	out_file.close()
 	tsprint(json.dumps({species_id: aln_stats}, indent=4))
-	global ALN_STATS_QUEUE
-	ALN_STATS_QUEUE.put((species_id, aln_stats))
+	return (species_id, aln_stats)
 
 
 def pysam_pileup(args, species, contigs):
@@ -221,20 +224,22 @@ def pysam_pileup(args, species, contigs):
 	print("\nCounting alleles")
 	args['log'].write("\nCounting alleles\n")
 
+	# We cannot pass args to a subprocess unfortunately because args['log'] is an object;
+	# so we can make it a global, although that is certainly living dangerously.
+	# TODO: Just clean this up.
+	global global_args
+	global_args = args
+
 	# run pileups per species in parallel
 	argument_list = []
+	# We might not need this for contigs.  It was an attempt to eliminate the nonserializable subprocess argument.  Which is args.
+	contigs = { str(c.id): {'species_id': str(c.species_id), 'length': int(c.length), 'seq': [chr for chr in c.seq]} for c in contigs.values() }
 	for species_id in species:
-		argument_list.append([args, species_id, contigs])
+		argument_list.append([species_id, contigs])
 
-	global ALN_STATS_QUEUE
-	ALN_STATS_QUEUE = Queue(len(species))
-	#utility.parallel(species_pileup, argument_list, args['threads'], no_results=True)
-	for args, species_id, contigs in argument_list:
-		species_pileup(args, species_id, contigs)
-
+	mp = multiprocessing.Pool(int(args['threads']))
 	# update alignment stats for species objects
-	while not ALN_STATS_QUEUE.empty():
-		species_id, stats = ALN_STATS_QUEUE.get()
+	for species_id, stats in mp.starmap(species_pileup, argument_list):
 		sp = species[species_id]
 		sp.genome_length = stats['genome_length']
 		sp.covered_bases = stats['covered_bases']
