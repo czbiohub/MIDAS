@@ -12,7 +12,6 @@ prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
 
-GENOMES = GENOMES[:10]
 
 rule cleanup_header:
  """Prokka doesn't take | in the header """
