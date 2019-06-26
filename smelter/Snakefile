@@ -39,7 +39,7 @@ rule run_prokka:
  shell:
   """
   prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
-         --locustag {params.prefix} --force {input}
+         --locustag {params.prefix} --centre X --compliant --force {input}
   """
 
 rule reformat_genome:
