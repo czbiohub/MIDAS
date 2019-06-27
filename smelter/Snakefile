@@ -1,161 +1,373 @@
-import glob
-import os
-import shutil
-from pathlib import Path
+# -*- mode: Snakemake -*-
+#
+# Build customer MIDAS database.
+#
+# Chunyu Zhao 2019-06-26
 
-import os, subprocess, sys, shutil, gzip
+import os, subprocess, sys, shutil, gzi
+from pathlib import Path
 from midas import utility
 impor Bio.SeqIO
-
-# Chunyu Zhao 2019-06-26
 
 
 ## TODO: read the path from iggdb.py
 repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
-
+mapfile = "mapfile"
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
 
+"""
+Read species and genome info
+"""
+def parse_mapping_file(mapfile):
+    infile = utilit.iopen(mapfile)
+    fileds = next(infile).rstrip('\n').split('\t')
+    for line in infile:
+        values = line.rstrip('\t').split('\t')
+        record = dict([(f,v) for f, v in zip(fields, values)])
+
+def read_species(mapfile):
+    species = {}
+    for record in parse_mapping_file(mapfile):
+        species_id = record['species_id']
+        genome_id = record['genome_id']
+        # fetch species
+        sp = species[species_id] if species_id in species else Species(species_id)
+        # update genomes
+        if len(sp.genomes) < args['max_genomes']:
+            sp.genomes[genome_id] = Genome(genome_id, args['indir'])
+            if record['rep_genome'] == '1':
+                sp.rep_genome = genome_id
+                sp.genomes[genome_id].is_rep = True
+            else:
+                sp.genomes[genome_id].is_rep = False
+                # store species
+        if len(species) < args['max_species']:
+            species[species_id] = sp
+        # update # of genomes
+        for sp in species.values():
+            sp.ngenomes = len(sp.genomes)
+                # make sure at least 1 rep genome/species
+                if sp.rep_genome is None:
+                    sp.rep_genome = sp.genomes.keys()[0]
+        return list(species.values())
+
+def read_genomes(species):
+    genomes = sum([list(sp.genomes.values()) for sp in species], [])
+    return genomes
+
+Species = read_species(mapfile)
+Genomes = read_genomes(Species)
+
+
+"""
+Gene annotation
+"""
 rule cleanup_header:
- """Prokka doesn't take | in the header """
- input:
-  str(repgenome_path/'{genome}.fna')
- output:
-  temp(str(temp_path/'{genome}.fna'))
- shell:
-  """
-  sed "s/|/_/g" {input} > {output}
-  """
+    input:
+        str(repgenome_path/'{genome}.fna')
+    output:
+        temp(str(temp_path/'{genome}.fna'))
+    shell:
+        """
+        sed "s/|/_/g" {input} > {output}
+        """
 
 rule run_prokka:
- input:
-  str(temp_path/'{genome}.fna')
- output:
-  faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
-  ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
-  fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
-  tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
- params:
-  outdir = str(prokka_dir/'{genome}'),
-  prefix = "{genome}"
- shell:
-  """
-  prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
-         --locustag {params.prefix} --centre X --compliant --force {input}
-  """
+    input:
+        str(temp_path/'{genome}.fna')
+    output:
+        faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
+        ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
+        fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
+        gene = str(prokka_dir/'{genome}'/'{genome}.genes')
+    params:
+        outdir = str(prokka_dir/'{genome}'),
+        prefix = "{genome}",
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
+    shell:
+        """
+        prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
+        --locustag {params.prefix} --centre X --compliant --force {input}
 
-rule reformat_genome:
- input:
-  tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
- output:
-  genes = str(prokka_dir/'{genome}'/'{genome}.genes')
- shell:
-  """
-  mv {input.tsv} {output.genes}
-  """
+        mv {params.tsv} {output.gene}
+        """
 
-rule all_prokka:
- input:
-  expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome=GENOMES)
+rule _all_prokka:
+    input:
+        expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome=GENOMES)
 
+"""
+Pan-genome
+- pangeomes/{species}/genes.ffn: all genes from specificed genomes
+- pangeomes/{species}/centroids.ff: gene sequences from 99%% identity gene clusters
+- pangeomes/{species}/gene_info.txt: information for all genes from genes.ffn
+"""
 
-## 20190626
-## notyet
-## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
-## do we really need this? if so, we should be able to simply cat in Snakefile
+rule store_write_genes:
+    input:
+        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES)
+        mapfile = "mapfile"
+    output:
+        genes = "pan_genomes/{species}/genes.ffn"
+        info = "pan_genomes/{species}/genes.ffn"
+    #shell:
+        ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
+        ## do we really need this? if so, how in snakemake?
+        ## might run into command arguments too long
+        #"""
+        #cat {input} > {output}
+        #"""
+    params:
+        sp_id = {wildcards.species},
+        genome_fp = str(prokka_dir)
+    run:
+        genomes = []
+        with open {input.mapfile} as f:
+            for line in f:
+                line = line.rstrip().split('\t')
+                    if line[1] == {params.sp_id}:
+                        selected.append(line[0])
+        genes = {}
+        stats = {}
+        stats['genes'] = 0
+        for genome in genomes:
+            genome_file = '%s/%s/%.ffn' % (params['genome_fp'], genome, genome)
+            for rec in Bio.SeqIO.parse(genome_file, 'fasta'):
+                if str(rec.seq) == '' or str(rec.id) in ['', '|']:
+                    continue
+                else:
+                    ## Needs changes. We only need the gene.id and gene.seq
+                    gene = Gene(rec.id)
+                    gene.genome_id = genome.id
+                    gene.seq = str(rec.seq).upper()
+                    gene.length = len(gene.seq)
+                    genes[gene.id] = gene
+                    stats['genes'] += 1
+        ## write genes
+        file = utility.iopen(output['genes'], 'w')
+        for gene in genes.values():
+            file.write('>%s\n%s\n' % (gene.id, gene.seq))
+        file.close()
+        ## write gene info =>
+        file = utility.iopen(output['info'], 'w')
+        header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        file.write('\t'.join(header)+'\n')
+        for gene_id in sorted(genes.keys()):
+            g = genes[gene_id]
+            values = [g.id, g.genome_id, g.length, g.centroid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+            file.write('\t'.join([str(_) for _ in values])+'\n')
+        file.close()
+
 rule uclust_genes_99:
- input:
-   # this part is hard coded and should move to iggdb
-   genes = "pan_genomes/{species_id}/genes.ffn"
- output:
-   centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn",
-   uc = "pan_genomes/{species_id}/temp/centroids.99.txt"
- params:
-   pid = 0.99
- threads: 2
- shell:
-   """
-   vsearch -cluster_fast {input.genes} \
-    -id {params.pid} -threads {threads} \
-    -centroids {output.centroids} \
-    -uc {output.uc}
-   """
+    input:
+        # add pangenome_path from iggdb
+        genes = "pan_genomes/{species}/genes.ffn"
+    output:
+        centroids = "pan_genomes/{species}/temp/centroids.99.ffn",
+        uc = "pan_genomes/{species}/temp/centroids.99.txt"
+    params:
+        pid = 0.99
+        threads: 2
+    shell:
+        """
+        vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
+                -centroids {output.centroids} -uc {output.uc}
+        """
 
 rule uclust_genes:
- """
- VSEARCH is used to cluster the centroids from 99% identity gene clusters further
- at 95, 90, 85, 80, and 75 percent identity.
- """
- input:
-  centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn"
- output:
-  centroids = "pan_genomes/{species_id}/temp/centroids.{pid}.ffn",
-  uc = "pan_genomes/{species_id}/temp/centroids.{pid}.txt",
- params:
-  pid = {wildcards.pid}/100.0 ## not sure whether this is the way
- shell:
-  """
-  vsearch -cluster_fast {input.centroids} \
-   -id {params.pid} -threads {threads} \
-   -centroids {output.centroids} \
-   -uc {output.uc}
-  """
+    input:
+        centroids = "pan_genomes/{species}/temp/centroids.99.ffn"
+    output:
+        centroids = "pan_genomes/{species}/temp/centroids.{pid}.ffn",
+        uc = "pan_genomes/{species}/temp/centroids.{pid}.txt",
+    params:
+        pid = {wildcards.pid}/100.0 ## not sure whether this is the way
+    shell:
+        """
+        vsearch -cluster_fast {input.centroids} -id {params.pid} -threads {threads} \
+                -centroids {output.centroids} -uc {output.uc}
+        """
 
 rule _all_uclusted_genes:
- input:
-  expand("pan_genomes/temp/centroids.{pid}.ffn", pid=[95, 90, 85, 80, 75])
+    input:
+        expand("pan_genomes/temp/centroids.{pid}.ffn", pid=[95, 90, 85, 80, 75])
 
-
-rule copye_centroids:
- input:
-  centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn",
-  uc = "pan_genomes/{species_id}/emp/centroids.99.txt"
- output:
-  "pan_genomes/{species_id}/centroids.99.ffn",
-
-        shutil.copy('%s/centroids.99.ffn' % self.tmp, '%s/centroids.99.ffn' % self.dir)
-
- ## Now we store the gene_info (to where?)
+rule copy_centroids:
+    input:
+        "pan_genomes/{species}/temp/centroids.99.ffn"
+    output:
+        "pan_genomes/{species}/centroids.99.ffn",
+    shell:
+        "cp {input} {output}"
 
 def parse_uclust(inpath):
- """ Yield formated records from UCLUST outputfile """
- fields = ['type', 'cluster_id', 'size', 'pid', 'strand', 'skip1', 'skip2', 'skip3', 'gene_id', 'centroid_id']
-  with utility.iopen(inpath) as infile:
-   for index, line in enumerate(infile):
-    values = line.rstrip('\n').split('\t')
-    record = dict([(f, v) for f, v in zip(fields, values)])
-    yield record
+    """ Yield formated records from UCLUST outputfile """
+    fields = ['type', 'cluster_id', 'size', 'pid', 'strand', 'skip1', 'skip2', 'skip3', 'gene_id', 'centroid_id']
+    with utility.iopen(inpath) as infile:
+        for index, line in enumerate(infile):
+            values = line.rstrip('\n').split('\t')
+            record = dict([(f, v) for f, v in zip(fields, values)])
+            yield record
 
 rule store_gene_info:
- input:
-  expand("pan_genomes/temp/uclust.{pid}.txt", pid=[95, 90, 85, 80, 75])
- output:
-  "pan_genomes/{species_id}/gene_info.txt",
- params:
-  tmp_dir = "pan_genomes/{species_id}/temp",
-  out_dir = "pan_genomes/{species_id}",
- run:
-  shutil.copy('%s/centroids.99.ffn' % params['temp'], '%s/centroids.99.ffn' % params['out_dir'])
-  ## Read
-  genes = {}
-  for pid in [99, 95, 90, 85, 80, 75]:
-      for r in parge_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
-        if r['type'] == 'H': ## non-centroids
-            genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-            genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-        else r['type'] == 'S': ## centroids
-            genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-            genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-            stats['centroids_%s' % pid] += 1
-        else:
+    input:
+        expand("pan_genomes/temp/uclust.{pid}.txt", pid=[95, 90, 85, 80, 75])
+    output:
+        "pan_genomes/{species}/gene_info.txt",
+    params:
+        tmp_dir = "pan_genomes/{species}/temp",
+        out_dir = "pan_genomes/{species}",
+    run:
+        ## Read
+        genes = {}
+        for pid in [99, 95, 90, 85, 80, 75]:
+            for r in parge_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
+                if r['type'] == 'H': ## non-centroids
+                genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+            else r['type'] == 'S': ## centroids
+                genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+                stats['centroids_%s' % pid] += 1
+            else:
+                continue
+        ## write_gene_into
+        file = utility.iopen(output[0], 'w')
+        header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        file.write('\t'.join(header)+'\n')
+        for gene_id in sorted(genes.keys()):
+            g = genes[gene_id]
+            values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+        file.write('\t'.join(str(_) for _ in values) + '\n')
+        file.close()
+
+"""
+Marker genes database: search markder gene HMMs against pangenomes
+"""
+rule hmm_search:
+    input:
+        faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
+        phyeco = "phyeco.hmm'"
+    output:
+        ## need to move to marker genes database as well
+        "marker_genes/temp/{genome}.hmmsearch"
+    params:
+        "what do we need here"
+    threads: 2
+    shell:
+        """
+        hmmsearch --noali --cpu {threads} --domtblout {output} {input.phyeco} {input.faa}
+        """
+
+def parse_fasta(p_in):
+    """" Lookup of seq_id to sequence for PATRIC genes """
+    seqs = {}
+    infile = utility.iopen(p_in)
+    for r in Bio.SeqIO.parse(infile, "fasta"):
+        seqs[r.id] = str(r.seq).upper()
+    infile.close()
+    return seqs
+
+def parse_hmmsearch(p_in):
+    """ Parse HMMER domblout files. Return data-type formatted dictionary """
+    f_in = utility.iopen(p_in)
+    for line in f_in:
+        if line[0] == '#': continue
+            x = line.rstrip().split()
+            query = x[0]
+            target = x[3]
+            evalue = float(x[12])
+            qcov = (int(x[20]) - int(x[19]) + 1)/float(x[2])
+            tcov = (int(x[16]) - int(x[15]) + 1)/float(x[5])
+            yield {'query':query, 'target':target, 'evalue':evalue, 'qcov':qcov, 'tcov':tcov, 'qlen':int(x[2]), 'tlen':int(x[5])}
+
+def find_hits(inpath, max_evalue, min_cov):
+    hits = {}
+    for r in parse_hmmsearch(inpath):
+        if r['evalue'] > max_evalue:
             continue
-  ## write_gene_into
-  file = utility.iopen(output[0], 'w')
-  header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
-  file.write('\t'.join(header)+'\n')
-  for gene_id in sorted(genes.keys()):
-    g = genes[gene_id]
-    values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
-    file.write('\t'.join(str(_) for _ in values) + '\n')
-  file.close()
+        elif min(r['qcov'], r['tcov']) < min_cov:
+            continue
+        if r['target'] not in hits:
+            hits[r['target']] = r
+        elif r['evalue'] < hits[r['target']]['evalue']:
+            hits[r['target']] = r
+    return list(hits.values())
+
+rule build_marker_db:
+    input:
+        ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
+        hmm_path = "marker_genes/temp/{genome}.hmmsearch",
+        mapfile = "mapfile"
+    output:
+        fasta = "marker_genes/phyeco.fa",
+        info = "marker_genes/phyeco.map"
+    params:
+        max_evalue = 1e-5,
+        min_cov = 0.00,
+        genome_id = {wildcards.genome}
+    run:
+        ## we just need to find out the species_id
+        with open (input['mapfile']) as fmap:
+            for line in fmap:
+          line = line.strip().split('\t')
+          if params['genome_id'] == line[0]:
+              break
+        ## right here: line should corresponding to current genome_id
+        fna = parse_fasta(input['ffn'])
+        ofasta = open(output['fasta'])
+        oinfo = open(output['info'])
+        oinfo.write('\t'.join(['species_id', 'genome_id', 'gene_id', 'gene_length', 'marker_id']) + '\n')
+        for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
+            gene = fna[h['query']].upper()
+            info = [sp.id, genome.id, h['query'], len(gene), h['target']]
+            oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
+            if line[2]:
+                ## only write the FASTA for the rep genomes, but get the stats for
+                ## all the genomes.
+                ofasta.write('\t'.join(str(_) for _ in info) + '\n')
+        ofasta.close()
+        oinfo.close()
+
+"""
+Build blast database
+"""
+rule build_hsblastn_db:
+    input:
+        "marker_genes/phyeco.fa",
+    output:
+        "marker_genes/phyeco.fa.sa",
+    shell:
+        ## i need to figure out the output suffix
+        "hs-blastn {input}"
+
+
+"""
+Write mapping cutoff fileds
+"""
+rule build_mapping_cutsoffs:
+    output:
+        "marker_genes/phyeco.mapping_cutoffs"
+    run:
+        cutoffs = {
+            'B000032':95.50,
+            'B000039':94.75,
+            'B000041':98.00,
+            'B000062':97.25,
+            'B000063':96.00,
+            'B000065':98.00,
+            'B000071':95.25,
+            'B000079':98.00,
+            'B000080':95.25,
+            'B000081':97.00,
+            'B000082':95.25,
+            'B000086':96.75,
+            'B000096':96.75,
+            'B000103':95.25,
+            'B000114':94.50}
+        outfile = open(output[0], 'w')
+        for marker_id, cutoff in cutoffs.items():
+            outfile.write(marker_id+'\t'+str(cutoff)+'\n')
+        outfile.close()
