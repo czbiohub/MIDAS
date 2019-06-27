@@ -41,6 +41,8 @@ class IGGdb:
             s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{s['repgenome_with_origin']}.fna"
             s['repgenome_path_clean'] = f"{self.iggdb_root}/repgenomes_clean/{s['species_alt_id']}.fna"
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
+            ## pan_genomes/{species_id}/genes.ffn
+            
 
     def get_species(self, species_id, default=None):
         return self.species.get(species_id, default)

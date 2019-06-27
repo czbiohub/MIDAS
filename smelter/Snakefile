@@ -2,6 +2,11 @@ import glob
 import os
 import shutil
 from pathlib import Path
+
+import os, subprocess, sys, shutil, gzip
+from midas import utility
+impor Bio.SeqIO
+
 # Chunyu Zhao 2019-06-26
 
 
@@ -11,7 +16,6 @@ temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
-
 
 rule cleanup_header:
  """Prokka doesn't take | in the header """
@@ -54,3 +58,104 @@ rule reformat_genome:
 rule all_prokka:
  input:
   expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome=GENOMES)
+
+
+## 20190626
+## notyet
+## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
+## do we really need this? if so, we should be able to simply cat in Snakefile
+rule uclust_genes_99:
+ input:
+   # this part is hard coded and should move to iggdb
+   genes = "pan_genomes/{species_id}/genes.ffn"
+ output:
+   centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn",
+   uc = "pan_genomes/{species_id}/temp/centroids.99.txt"
+ params:
+   pid = 0.99
+ threads: 2
+ shell:
+   """
+   vsearch -cluster_fast {input.genes} \
+    -id {params.pid} -threads {threads} \
+    -centroids {output.centroids} \
+    -uc {output.uc}
+   """
+
+rule uclust_genes:
+ """
+ VSEARCH is used to cluster the centroids from 99% identity gene clusters further
+ at 95, 90, 85, 80, and 75 percent identity.
+ """
+ input:
+  centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn"
+ output:
+  centroids = "pan_genomes/{species_id}/temp/centroids.{pid}.ffn",
+  uc = "pan_genomes/{species_id}/temp/centroids.{pid}.txt",
+ params:
+  pid = {wildcards.pid}/100.0 ## not sure whether this is the way
+ shell:
+  """
+  vsearch -cluster_fast {input.centroids} \
+   -id {params.pid} -threads {threads} \
+   -centroids {output.centroids} \
+   -uc {output.uc}
+  """
+
+rule _all_uclusted_genes:
+ input:
+  expand("pan_genomes/temp/centroids.{pid}.ffn", pid=[95, 90, 85, 80, 75])
+
+
+rule copye_centroids:
+ input:
+  centroids = "pan_genomes/{species_id}/temp/centroids.99.ffn",
+  uc = "pan_genomes/{species_id}/emp/centroids.99.txt"
+ output:
+  "pan_genomes/{species_id}/centroids.99.ffn",
+
+        shutil.copy('%s/centroids.99.ffn' % self.tmp, '%s/centroids.99.ffn' % self.dir)
+
+ ## Now we store the gene_info (to where?)
+
+def parse_uclust(inpath):
+ """ Yield formated records from UCLUST outputfile """
+ fields = ['type', 'cluster_id', 'size', 'pid', 'strand', 'skip1', 'skip2', 'skip3', 'gene_id', 'centroid_id']
+  with utility.iopen(inpath) as infile:
+   for index, line in enumerate(infile):
+    values = line.rstrip('\n').split('\t')
+    record = dict([(f, v) for f, v in zip(fields, values)])
+    yield record
+
+rule store_gene_info:
+ input:
+  expand("pan_genomes/temp/uclust.{pid}.txt", pid=[95, 90, 85, 80, 75])
+ output:
+  "pan_genomes/{species_id}/gene_info.txt",
+ params:
+  tmp_dir = "pan_genomes/{species_id}/temp",
+  out_dir = "pan_genomes/{species_id}",
+ run:
+  shutil.copy('%s/centroids.99.ffn' % params['temp'], '%s/centroids.99.ffn' % params['out_dir'])
+  ## Read
+  genes = {}
+  for pid in [99, 95, 90, 85, 80, 75]:
+      for r in parge_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
+        if r['type'] == 'H': ## non-centroids
+            genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+            genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+        else r['type'] == 'S': ## centroids
+            genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+            genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+            stats['centroids_%s' % pid] += 1
+        else:
+            continue
+  ## write_gene_into
+  file = utility.iopen(output[0], 'w')
+  header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+  file.write('\t'.join(header)+'\n')
+  for gene_id in sorted(genes.keys()):
+    g = genes[gene_id]
+    values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+    file.write('\t'.join(str(_) for _ in values) + '\n')
+  file.close()
