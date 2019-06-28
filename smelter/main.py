@@ -87,9 +87,6 @@ def smelt(argv):
                 s_repgenome_with_origin = s['repgenome_with_origin']
                 s_repgenome_path = s['repgenome_path']
                 s_header_xform = f"sed 's=^>=>{s_species_alt_id}|{s_repgenome_with_origin}|=' {s_repgenome_path} > {s_tempfile} && cat {s_tempfile} >> {outdir}/temp_{gdim}.fa && rm {s_tempfile} && echo SUCCEEDED || echo FAILED"
-                # CZ
-                s_repgenome_path_clean = s['repgenome_path_clean']
-                s_header_xform = f"sed 's=^>=>{s_species_alt_id}|=' {s_repgenome_path} > {s_tempfile} && sed '/^>/ s/ .*//' {s_tempfile} > {s_repgenome_path_clean} && cat {s_repgenome_path_clean} >> {outdir}/temp_{gdim}.fa && rm {s_tempfile} && echo SUCCEEDED || echo FAILED"
             status = backtick(s_header_xform)
             assert status == "SUCCEEDED"
             count_successes += 1

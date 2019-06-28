@@ -11,11 +11,17 @@ impor Bio.SeqIO
 
 
 ## TODO: read the path from iggdb.py
-repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
+##
+
+repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "mapfile"
+
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
+## TO use IGGdb
+iggdb = IGGdb("species_info_test.tsv")
+## play with this
 
 """
 Read species and genome info
@@ -64,14 +70,17 @@ Genomes = read_genomes(Species)
 """
 Gene annotation
 """
+## we prefer not to save intermediate files, but rather generate them on the fly
 rule cleanup_header:
     input:
         str(repgenome_path/'{genome}.fna')
     output:
         temp(str(temp_path/'{genome}.fna'))
+    params:
+        genome = {genome}
     shell:
         """
-        sed "s/|/_/g" {input} > {output}
+        sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
         """
 
 rule run_prokka:
