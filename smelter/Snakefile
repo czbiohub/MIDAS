@@ -321,9 +321,9 @@ rule build_marker_db:
         ## we just need to find out the species_id
         with open (input['mapfile']) as fmap:
             for line in fmap:
-          line = line.strip().split('\t')
-          if params['genome_id'] == line[0]:
-              break
+                line = line.strip().split('\t')
+                if params['genome_id'] == line[0]:
+                    break
         ## right here: line should corresponding to current genome_id
         fna = parse_fasta(input['ffn'])
         ofasta = open(output['fasta'])
