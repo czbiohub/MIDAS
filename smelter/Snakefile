@@ -249,7 +249,7 @@ rule store_write_genes:
         mapfile = "mapfile"
     output:
         genes = "pan_genomes/{species}/genes.ffn",
-        info = "pan_genomes/{species}/genes.ffn"
+        info = "pan_genomes/{species}/genes_info.txt"
     params:
         sp_id = "{species}",
         genome_fp = str(prokka_dir)
