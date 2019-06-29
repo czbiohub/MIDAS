@@ -242,7 +242,7 @@ Pan-genome
 
 rule store_write_genes:
     input:
-        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES)
+        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
         mapfile = "mapfile"
     output:
         genes = "pan_genomes/{species}/genes.ffn"
