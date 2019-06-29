@@ -14,7 +14,7 @@ import Bio.SeqIO
 repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
-mapfile = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile")
+mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
 ## TO use IGGdb
