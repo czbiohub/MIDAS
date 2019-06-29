@@ -28,6 +28,7 @@ REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
 Read species and genome info
 """
 
+"""
 def parse_mapping_file(mapfile):
     infile = utility.iopen(mapfile)
     fields = next(infile).rstrip('\n').split('\t')
@@ -68,6 +69,7 @@ def read_genomes(species):
 
 Species = read_species(mapfile)
 Genomes = read_genomes(Species)
+"""
 
 """
 Gene annotation
