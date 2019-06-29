@@ -10,7 +10,8 @@ from midas import utility
 import Bio.SeqIO
 
 ## TODO: read the path from iggdb.py
-repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
+#repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
+repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
@@ -74,26 +75,34 @@ Genomes = read_genomes(Species)
 Gene annotation
 """
 ## we prefer not to save intermediate files, but rather generate them on the fly
-rule run_prokka:
+rule cleanup_header:
     input:
         str(repgenome_path/'{genome}.fna')
+    output:
+        temp(str(temp_path/'{genome}.fna'))
+    params:
+        genome = "{genome}"
+    shell:
+        """
+        sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
+        """
+
+rule run_prokka:
+    input:
+        str(temp_path/'{genome}.fna')
     output:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
         ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
         fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
         genes = str(prokka_dir/'{genome}'/'{genome}.genes')
     params:
-        genome = "{genome}",
         outdir = str(prokka_dir/'{genome}'),
         prefix = "{genome}",
-        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv'),
-        clean = str(temp_path/'{genome}.fna')
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
     shell:
         """
-        sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {params.clean}
-
         prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
-        --locustag {params.prefix} --centre X --compliant --force {params.clean}
+        --locustag {params.prefix} --centre X --compliant --force {input}
 
         mv {params.tsv} {output.genes}
         """
