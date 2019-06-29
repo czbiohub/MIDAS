@@ -13,7 +13,8 @@ impor Bio.SeqIO
 ## TODO: read the path from iggdb.py
 ##
 
-repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
+#repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
+repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "mapfile"
@@ -25,7 +26,7 @@ from iggdb import IGGdb
 project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/metadata_5000_20190628")
 iggdb = IGGdb(str(project_dir/"species_info.tsv"))
 REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
-GENOMES = REP_GENOMES
+#GENOMES = REP_GENOMES
 
 """
 Read species and genome info
@@ -70,7 +71,6 @@ def read_genomes(species):
 
 Species = read_species(mapfile)
 Genomes = read_genomes(Species)
-
 
 """
 Gene annotation
