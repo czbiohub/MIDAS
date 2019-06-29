@@ -259,7 +259,7 @@ rule store_write_genes:
         genome_fp = str(prokka_dir)
     run:
         genomes = []
-        with open {input.mapfile} as f:
+        with open input['mapfile'] as f:
             for line in f:
                 line = line.rstrip().split('\t')
                     if line[1] == {params.sp_id}:
