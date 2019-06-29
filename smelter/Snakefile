@@ -250,21 +250,17 @@ rule store_write_genes:
     output:
         genes = "pan_genomes/{species}/genes.ffn",
         info = "pan_genomes/{species}/genes.ffn"
-    #shell:
-        ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
-        ## do we really need this? if so, how in snakemake?
-        ## might run into command arguments too long
-        #"""
-        #cat {input} > {output}
-        #"""
     params:
         sp_id = "{species}",
         genome_fp = str(prokka_dir)
     run:
+        ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
+        ## do we really need this? if so, how in snakemake?
+        ## might run into command arguments too long
         genomes = []
         with open(input['mapfile']) as f:
             for line in f:
-                line = line.rstrip().split('\t')
+                line = line.rstrip('\n').split('\t')
                 if line[1] == {params.sp_id}:
                     selected.append(line[0])
         genes = {}
