@@ -317,7 +317,7 @@ rule uclust_genes:
         centroids = "pan_genomes/{species}/temp/centroids.{pid}.ffn",
         uc = "pan_genomes/{species}/temp/centroids.{pid}.txt",
     params:
-        pid = "{wildcard.pid}"/100.0 ## not sure whether this is the way
+        pid = "{wildcard.pid}"### TODO /100.0 ## not sure whether this is the way
     shell:
         """
         vsearch -cluster_fast {input.centroids} -id {params.pid} -threads {threads} \
