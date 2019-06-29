@@ -304,7 +304,7 @@ rule uclust_genes_99:
         uc = "pan_genomes/{species}/temp/centroids.99.txt"
     params:
         pid = 0.99,
-        threads: 2
+    threads: 2
     shell:
         """
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
