@@ -245,7 +245,7 @@ rule store_write_genes:
         genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
         mapfile = "mapfile"
     output:
-        genes = "pan_genomes/{species}/genes.ffn"
+        genes = "pan_genomes/{species}/genes.ffn",
         info = "pan_genomes/{species}/genes.ffn"
     #shell:
         ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
