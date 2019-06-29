@@ -30,7 +30,7 @@ Read species and genome info
 
 def parse_mapping_file(mapfile):
     infile = utility.iopen(mapfile)
-    fileds = next(infile).rstrip('\n').split('\t')
+    fields = next(infile).rstrip('\n').split('\t')
     for line in infile:
         values = line.rstrip('\t').split('\t')
         record = dict([(f,v) for f, v in zip(fields, values)])
