@@ -56,9 +56,9 @@ def read_species(mapfile):
         # update # of genomes
         for sp in species.values():
             sp.ngenomes = len(sp.genomes)
-                # make sure at least 1 rep genome/species
-                if sp.rep_genome is None:
-                    sp.rep_genome = sp.genomes.keys()[0]
+            # make sure at least 1 rep genome/species
+            if sp.rep_genome is None:
+                sp.rep_genome = sp.genomes.keys()[0]
         return list(species.values())
 
 def read_genomes(species):
