@@ -17,6 +17,17 @@ prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
+
+prokka_done = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/prokka_done_samples"
+to_exclude = []
+with open(prokka_done) as f:
+    for line in f:
+        to_exclude.append(line.rstrip('\n').split('\t')[0])
+
+to_keep = [g for g in GENOMES if g not in to_exclude]
+GENOMES = to_keep
+print(len(GENOMES))
+
 ## TO use IGGdb
 from iggdb import IGGdb
 project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/metadata_5000_20190628")
@@ -79,12 +90,13 @@ rule cleanup_header:
     input:
         str(repgenome_path/'{genome}.fna')
     output:
-        temp(str(temp_path/'{genome}.fna'))
+        str(temp_path/'{genome}.fna')
     params:
         genome = "{genome}"
     shell:
         """
-        sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
+        sed "s/|/_/g" {input} > {output}
+        #sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
         """
 
 rule run_prokka:
