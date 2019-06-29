@@ -258,7 +258,7 @@ rule store_write_genes:
         #cat {input} > {output}
         #"""
     params:
-        sp_id = {wildcards.species},
+        sp_id = "{species}",
         genome_fp = str(prokka_dir)
     run:
         genomes = []
