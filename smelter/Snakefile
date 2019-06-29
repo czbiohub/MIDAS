@@ -360,14 +360,14 @@ rule store_gene_info:
         for pid in [99, 95, 90, 85, 80, 75]:
             for r in parge_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
                 if r['type'] == 'H': ## non-centroids
-                genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-                genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-            else r['type'] == 'S': ## centroids
-                genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-                genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-                stats['centroids_%s' % pid] += 1
-            else:
-                continue
+                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+                else r['type'] == 'S': ## centroids
+                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+                    stats['centroids_%s' % pid] += 1
+                else:
+                    continue
         ## write_gene_into
         file = utility.iopen(output[0], 'w')
         header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
