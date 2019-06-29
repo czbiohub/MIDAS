@@ -262,8 +262,8 @@ rule store_write_genes:
         with open(input['mapfile']) as f:
             for line in f:
                 line = line.rstrip().split('\t')
-                    if line[1] == {params.sp_id}:
-                        selected.append(line[0])
+                if line[1] == {params.sp_id}:
+                    selected.append(line[0])
         genes = {}
         stats = {}
         stats['genes'] = 0
