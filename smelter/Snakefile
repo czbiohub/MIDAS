@@ -34,6 +34,7 @@ def parse_mapping_file(mapfile):
     for line in infile:
         values = line.rstrip('\t').split('\t')
         record = dict([(f,v) for f, v in zip(fields, values)])
+        yield record
 
 def read_species(mapfile):
     species = {}
