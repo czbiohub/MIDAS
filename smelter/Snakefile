@@ -29,7 +29,7 @@ Read species and genome info
 """
 
 def parse_mapping_file(mapfile):
-    infile = utilit.iopen(mapfile)
+    infile = utility.iopen(mapfile)
     fileds = next(infile).rstrip('\n').split('\t')
     for line in infile:
         values = line.rstrip('\t').split('\t')
