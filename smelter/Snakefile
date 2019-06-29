@@ -95,23 +95,18 @@ rule run_prokka:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
         ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
         fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
-        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
+        genes = str(prokka_dir/'{genome}'/'{genome}.genes')
     params:
         outdir = str(prokka_dir/'{genome}'),
-        prefix = "{genome}"
+        prefix = "{genome}",
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
     shell:
         """
         prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
         --locustag {params.prefix} --centre X --compliant --force {input}
-        """
 
-rule no_more:
-    input:
-        str(prokka_dir/'{genome}'/'{genome}.tsv')
-    output:
-        str(prokka_dir/'{genome}'/'{genome}.genes')
-    shell:
-        "mv {input} {output}"
+        mv {params.tsv} {output.genes}
+        """
 
 rule _all_prokka:
     input:
