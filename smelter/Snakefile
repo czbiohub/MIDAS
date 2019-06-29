@@ -25,8 +25,8 @@ with open(prokka_done) as f:
         to_exclude.append(line.rstrip('\n').split('\t')[0])
 
 to_keep = [g for g in GENOMES if g not in to_exclude]
-#GENOMES = to_keep
-#print(len(GENOMES))
+GENOMES = to_keep
+print(len(GENOMES))
 
 ## TO use IGGdb
 from iggdb import IGGdb
