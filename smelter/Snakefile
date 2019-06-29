@@ -84,7 +84,8 @@ rule cleanup_header:
         genome = "{genome}"
     shell:
         """
-        sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
+        sed "s/|/_/g" {input} > {output}
+        #sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
         """
 
 rule run_prokka:
