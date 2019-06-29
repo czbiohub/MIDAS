@@ -81,7 +81,7 @@ rule cleanup_header:
     output:
         temp(str(temp_path/'{genome}.fna'))
     params:
-        genome = {genome}
+        genome = "{genome}"
     shell:
         """
         sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
