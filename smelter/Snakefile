@@ -303,7 +303,7 @@ rule uclust_genes_99:
         centroids = "pan_genomes/{species}/temp/centroids.99.ffn",
         uc = "pan_genomes/{species}/temp/centroids.99.txt"
     params:
-        pid = 0.99
+        pid = 0.99,
         threads: 2
     shell:
         """
