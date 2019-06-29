@@ -40,8 +40,7 @@ class IGGdb:
             s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
             s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{s['repgenome_with_origin']}.fna"
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
-            s['repgenome_path_clean'] = f"{self.iggdb_root}/repgenomes_clean/{s['s_species_alt_id']}.fna"
-            ## pan_genomes/{species_id}/genes.ffn
+            s['repgenome_path_clean'] = f"{self.iggdb_root}/repgenomes_clean/{s['species_alt_id']}.fna"
             ## CZ newly added paths:
             ## prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 
