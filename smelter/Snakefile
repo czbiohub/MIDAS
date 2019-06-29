@@ -25,8 +25,8 @@ with open(prokka_done) as f:
         to_exclude.append(line.rstrip('\n').split('\t')[0])
 
 to_keep = [g for g in GENOMES if g not in to_exclude]
-GENOMES = to_keep
-print(len(GENOMES))
+#GENOMES = to_keep
+#print(len(GENOMES))
 
 ## TO use IGGdb
 from iggdb import IGGdb
@@ -106,18 +106,24 @@ rule run_prokka:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
         ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
         fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
-        genes = str(prokka_dir/'{genome}'/'{genome}.genes')
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
+        #genes = str(prokka_dir/'{genome}'/'{genome}.genes')
     params:
         outdir = str(prokka_dir/'{genome}'),
         prefix = "{genome}",
-        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
     shell:
         """
         prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
         --locustag {params.prefix} --centre X --compliant --force {input}
-
-        mv {params.tsv} {output.genes}
         """
+
+rule no_more:
+    input:
+        str(prokka_dir/'{genome}'/'{genome}.tsv')
+    output:
+        str(prokka_dir/'{genome}'/'{genome}.genes')
+    shell:
+        "mv {input} {output}"
 
 rule _all_prokka:
     input:
