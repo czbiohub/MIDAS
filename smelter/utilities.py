@@ -41,13 +41,22 @@ def tsprint(msg):
     tserr(tsfmt(msg))
 
 
-def check_output(command, quiet=False):
+def run(command, quiet=False, **kwargs):
     assert sys.version_info >= (3, 6), "Please run this script with Python version >= 3.6."
+    assert "shell" not in kwargs, "Please do not override shell.  It is automatically True if command is a string, False if list."
     shell = isinstance(command, str)
     if not quiet:
         command_str = command if shell else " ".join(command)
         tsprint(repr(command_str))
-    return subprocess.check_output(command, shell=shell).decode('utf-8')
+    spargs = {
+        "check": True
+    }
+    spargs.update(**kwargs)
+    return subprocess.run(command, shell=shell, **spargs)
+
+
+def check_output(command, quiet=False):
+    return run(command, quiet=quiet, stdout=subprocess.PIPE).stdout.decode('utf-8')
 
 
 def backtick(command):

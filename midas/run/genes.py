@@ -9,6 +9,7 @@ from collections import defaultdict
 from time import time
 from midas import utility
 from smelter.iggdb import IGGdb
+import json
 
 class Species:
     """ Base class for species """
@@ -76,7 +77,7 @@ def initialize_genes(args, species):
             sp.pangenome_size += 1
         file.close()
     # fetch marker_id
-    path = '%s/metadata/fake_marker_genes/phyeco_fake.map' % args['db']
+    path = '%s/metadata/marker_genes/phyeco.map' % args['db']
     file = utility.iopen(path)
     reader = csv.DictReader(file, delimiter='\t')
     for r in reader:
@@ -90,6 +91,10 @@ def build_pangenome_db(args, species):
     import Bio.SeqIO
     # fasta database
     outdir = '/'.join([args['outdir'], 'genes/temp'])
+    result = '%s/genes/temp/pangenomes.rev.1.bt2' % args['outdir']
+    if os.path.isfile(result):
+        print("Skipping bowtie pangenome db build because result already exists from prior run: " + result)
+        return
     pangenome_fasta = open('/'.join([outdir, 'pangenomes.fa']), 'w')
     pangenome_map = open('/'.join([outdir, 'pangenomes.map']), 'w')
     db_stats = {'total_length':0, 'total_seqs':0, 'species':0}
@@ -120,6 +125,10 @@ def build_pangenome_db(args, species):
 def pangenome_align(args):
     """ Use Bowtie2 to map reads to all specified genome species """
     # Bowtie2
+    result = '%s/genes/temp/pangenomes.bam' % args['outdir']
+    if os.path.isfile(result):
+        print("Skipping bowtie alignment because found result from prior run: " + result)
+        return
     command = '%s --no-unal ' % args['bowtie2']
     command += '-x %s ' % '/'.join([args['outdir'], 'genes/temp/pangenomes']) # index
     if args['max_reads']: command += '-u %s ' % args['max_reads'] # max num of reads
@@ -156,21 +165,21 @@ def pangenome_coverage(args, species, genes):
 
 def keep_read(aln, min_pid, min_readq, min_mapq, min_aln_cov):
     align_len = len(aln.query_alignment_sequence)
-    query_len = aln.query_length
-    # min pid
-    if 100*(align_len-dict(aln.tags)['NM'])/float(align_len) < min_pid:
-        return False
-    # min read quality
-    elif np.mean(aln.query_qualities) < min_readq:
-        return False
+    #print(json.dumps(aln.tags, indent=4))
+    #assert False
     # min map quality
-    elif aln.mapping_quality < min_mapq:
+    if aln.mapping_quality < min_mapq:
         return False
     # min aln cov
-    elif align_len/float(query_len)  < min_aln_cov:
+    if align_len/float(aln.query_length) < min_aln_cov:
         return False
-    else:
-        return True
+    # min read quality
+    if np.mean(aln.query_qualities) < min_readq:
+        return False
+    # min pid
+    if 100 * (align_len - dict(aln.tags)['NM']) / float(align_len) < min_pid:
+        return False
+    return True
 
 def count_mapped_bp(args, species, genes):
     """ Count number of bp mapped to each gene across pangenomes """
@@ -181,11 +190,14 @@ def count_mapped_bp(args, species, genes):
     # loop over alignments, sum values per gene
     for index, aln in enumerate(bamfile.fetch(until_eof = True)):
 
+        if index == 1_000_000:  # TODO:  Remove hack and parallelize
+            break
+
         gene = genes[bamfile.getrname(aln.reference_id)]
         species[gene.species_id].aligned_reads += 1
         gene.aligned_reads += 1
 
-        if not keep_read(aln, args['mapid'], args['readq'], args['mapq'], args['aln_cov']):
+        if keep_read(aln, args['mapid'], args['readq'], args['mapq'], args['aln_cov']):
             continue
         else:
             species[gene.species_id].mapped_reads += 1

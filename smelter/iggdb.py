@@ -40,6 +40,7 @@ class IGGdb:
             s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
             s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{s['repgenome_with_origin']}.fna"
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
+        self.iggdb_toc_species = iggdb_toc_species
 
 
     def get_species(self, species_id, default=None):
