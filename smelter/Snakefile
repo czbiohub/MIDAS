@@ -201,6 +201,8 @@ rule store_gene_info:
         centroid_id = {}
         for pid in [99, 95, 90, 85, 80, 75]:
             for r in parse_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
+                print(r['cluster_id'])
+                print(r['centroid_id'])
                 if r['type'] == 'H': ## non-centroids
                     genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
                     genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
