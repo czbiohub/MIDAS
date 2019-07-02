@@ -112,6 +112,10 @@ Pan-genome
 
 TEST_SPECIES = ["GUT_GENOME125418"]
 GENOMES = SPECIES[TEST_SPECIES[0]]
+g = []
+for species in SPECIES:
+    g = g + SPECIES[species]
+print(len(g))
 ## This should be a faster way to do this. But let's keep it work now.
 rule write_genes:
     input:
