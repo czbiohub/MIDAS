@@ -50,23 +50,27 @@ if not os.path.isfile(mapfile_fp):
                 line = [genome, GENOMES[genome], 0]
             out.write('\t'.join(map(str, line)) + '\n')
 
-
 GENOMES_DICT = GENOMES
-SPECIES_ALL = list(SPECIES.keys())
 GENOMES = list(GENOMES.keys())
+
+
+TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
+TEST_GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
+
 
 SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
             "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
             "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
             "GUT_GENOME140826"]
+GENOMES_0701 = reduce(concat, [list(SPECIES[species]) for species in SPECIES_0701])
 
-TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056", "GUT_GENOME096501", "GUT_GENOME013112"]
-GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
+GENOMES = GENOMES_0701
+SPECIES_LIST = SPECIES_0701
 
 
 rule all_pan_hmm:
     input:
-        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES),
+        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = SPECIES_LIST),
         expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)]
 
 
@@ -92,7 +96,7 @@ rule species_map_genome:
 
 rule _all_genomes:
     input:
-        expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_0701)
+        expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_LIST)
 
 rule run_prokka:
     input:
@@ -190,7 +194,7 @@ rule uclust_genes:
 
 rule _all_cluster:
     input:
-        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
+        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = SPECIES_LIST)
 
 def parse_uclust(inpath):
     """ Yield formated records from UCLUST outputfile """
@@ -272,7 +276,7 @@ rule copy_centroids:
 
 rule _all_pan:
     input:
-        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
+        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = SPECIES_LIST)
 
 """
 Marker genes database: search markder gene HMMs against pangenomes
