@@ -133,14 +133,10 @@ rule write_genes:
         stats['genes'] = 0
         for genome in genomes:
             genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
-            print(genome_file)
             for rec in Bio.SeqIO.parse(genome_file, 'fasta'):
                 if str(rec.seq) == '' or str(rec.id) in ['', '|']:
                     continue
                 else:
-                    ### STILL needs changes here
-                    #gene.genome_id = genome.id
-                    #gene.length = len(gene.seq)
                     genes[rec.id] = str(rec.seq).upper()
                     stats['genes'] += 1
         ## write genes
@@ -177,22 +173,87 @@ rule uclust_genes:
                 -centroids {output.centroids} -uc {output.uc}
         """
 
-rule _all_uclusted_genes:
-    input:
-        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = SPECIES)
-
 rule _all_cluster:
     input:
         expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
 
 
+def parse_uclust(inpath):
+    """ Yield formated records from UCLUST outputfile """
+    fields = ['type', 'cluster_id', 'size', 'pid', 'strand', 'skip1', 'skip2', 'skip3', 'gene_id', 'centroid_id']
+    with utility.iopen(inpath) as infile:
+        for index, line in enumerate(infile):
+            values = line.rstrip('\n').split('\t')
+            record = dict([(f, v) for f, v in zip(fields, values)])
+            yield record
+
+rule store_gene_info:
+    input:
+        centroids = expand(str(pangenomes_dir/"{species}"/"temp"/"uclust.{pid}.txt"), pid=[99,95, 90, 85, 80, 75])
+    output:
+        str(pangenomes_dir/"{species}"/"gene_info.txt")
+    params:
+        tmp_dir = str(pangenomes_dir/"{species}"/"temp"),
+        out_dir = str(pangenomes_dir/"{species}")
+    run:
+        genes = {}
+        cluster_id = {}
+        centroid_id = {}
+        for pid in [99, 95, 90, 85, 80, 75]:
+            for r in parse_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
+                if r['type'] == 'H': ## non-centroids
+                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+                elif r['type'] == 'S': ## centroids
+                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
+                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
+                    stats['centroids_%s' % pid] += 1
+                else:
+                    continue
+        ## write_gene_into
+        file = utility.iopen(output[0], 'w')
+        header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        #header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        file.write('\t'.join(header)+'\n')
+        for gene_id in sorted(genes.keys()):
+            g = genes[gene_id]
+            #values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+            values = [gene_id, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+        file.write('\t'.join(str(_) for _ in values) + '\n')
+        file.close()
+
+rule _all_test:
+    input:
+        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
+
 rule write_gene_info:
     input:
-        ## this is not my input. I just put this here for a fast run for cluster
-        expand("pan_genomes/temp/centroids.{pid}.ffn", pid=[95, 90, 85, 80, 75])
+        centroids = expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[99,95, 90, 85, 80, 75]),
+        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
+        genes = str(pangenomes_dir/"{species}"/"genes.ffn")
     output:
-        info = str(pangenomes_dir/"{species}"/"gene_info.txt")
+        str(pangenomes_dir/"{species}"/"gene_info_full.txt")
+    params:
+        sp_id = "{species}",
+        genome_fp = str(prokka_dir)
     run:
+        genomes = SPECIES[params['sp_id']]
+        genes = {}
+        stats = {}
+        stats['genes'] = 0
+        genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
+        for genome in genomes:
+            genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
+            for rec in Bio.SeqIO.parse(genome_file, 'fasta'):
+                if str(rec.seq) == '' or str(rec.id) in ['', '|']:
+                    continue
+                else:
+                    genome_id = genome
+                    gene_length = len(rec.seq)
+                    gene_seq = rec.seq
+                    gene_id = rec.id
+                    genes[rec.id] = str(rec.seq).upper()
+                    stats['genes'] += 1
 
         ## write gene info =>
         file = utility.iopen(output['info'], 'w')
@@ -311,49 +372,3 @@ rule build_hsblastn_db:
         str(project_dir/"marker_genes"/"phyeco.fa.sa")
     shell:
         "hs-blastn index {input}"
-
-
-
-
-def parse_uclust(inpath):
-    """ Yield formated records from UCLUST outputfile """
-    fields = ['type', 'cluster_id', 'size', 'pid', 'strand', 'skip1', 'skip2', 'skip3', 'gene_id', 'centroid_id']
-    with utility.iopen(inpath) as infile:
-        for index, line in enumerate(infile):
-            values = line.rstrip('\n').split('\t')
-            record = dict([(f, v) for f, v in zip(fields, values)])
-            yield record
-
-
-
-rule store_gene_info:
-    input:
-        expand("pan_genomes/temp/uclust.{pid}.txt", pid=[95, 90, 85, 80, 75])
-    output:
-        "pan_genomes/{species}/gene_info.txt",
-    params:
-        tmp_dir = "pan_genomes/{species}/temp",
-        out_dir = "pan_genomes/{species}",
-    run:
-        ## Read
-        genes = {}
-        for pid in [99, 95, 90, 85, 80, 75]:
-            for r in parge_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
-                if r['type'] == 'H': ## non-centroids
-                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-                elif r['type'] == 'S': ## centroids
-                    genes[r['gene_id']].cluster_id[pid] = r['cluster_id']
-                    genes[r['gene_id']].centroid_id[pid] = r['centroid_id']
-                    stats['centroids_%s' % pid] += 1
-                else:
-                    continue
-        ## write_gene_into
-        file = utility.iopen(output[0], 'w')
-        header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
-        file.write('\t'.join(header)+'\n')
-        for gene_id in sorted(genes.keys()):
-            g = genes[gene_id]
-            values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
-        file.write('\t'.join(str(_) for _ in values) + '\n')
-        file.close()
