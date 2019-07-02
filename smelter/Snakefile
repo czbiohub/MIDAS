@@ -260,7 +260,7 @@ rule copy_centroids:
     shell:
         "cp {input} {output}"
 
-rule _all_pangenome_build:
+rule _all_pan:
     input:
         expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
 
@@ -341,17 +341,15 @@ rule build_marker_db:
         print("rep", rep_genomes[:10])
         species_id = wildcards['species']
         fna = parse_fasta(input['genes'])
-        ofasta = open(output['fasta'], "w")
-        oinfo = open(output['info'], "w")
-        for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
-            print("hi", h)
-            gene = fna[h['query']].upper()
-            info = [species_id, params['genomeid'], h['query'], len(gene), h['target']]
-            oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
-            if line[2]: ## here we only write the markder genes... should we just run hmm over the pangenomes/centroids.ffn. i think so ...
-                ofasta.write('>' + h['query'] + '\n' + gene+'\n')
-        ofasta.close()
-        oinfo.close()
+        with open(output['fasta'], "w") as ofasta, open(output['info'], "w") as oinfo:
+            for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
+                genome_id = h['query'].rsplit("_", 1)[0] ## FULLY dependent on the IGGdb+ prokka gene format
+                geneseq = fna[h['query']].upper()
+                info = [species_id, genome_id, h['query'], len(geneseq), h['target']]
+                oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
+                ## if genome.is_rep
+                if genome_id in rep_genomes:
+                    ofasta.write('>' + h['query'] + '\n' + gene+'\n')
 
 rule _all_hmm:
     input:
