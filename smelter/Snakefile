@@ -228,7 +228,7 @@ rule _all_test:
 
 rule write_gene_info:
     input:
-        centroids = expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[99,95, 90, 85, 80, 75]),
+        centroids = expand(str(pangenomes_dir/"{{species}}"/"temp"/"centroids.{pid}.ffn"), pid=[99,95, 90, 85, 80, 75]),
         genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
         genes = str(pangenomes_dir/"{species}"/"genes.ffn")
     output:
