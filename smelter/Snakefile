@@ -65,4 +65,4 @@ rule species_map_genome:
 
 rule _all_temp:
     input:
-        expand(str(temp_path/genomes/"{species}.fna.lz4"), species = list(SPECIES.keys()))
+        expand(str(temp_path/"genomes"/"{species}.fna.lz4"), species = list(SPECIES.keys()))
