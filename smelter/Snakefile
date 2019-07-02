@@ -336,8 +336,7 @@ rule build_marker_db:
     run:
         rep_genomes = []
         for record in parse_mapping_file(input['mapfile']):
-            print(record)
-            if record['rep_genome']:
+            if int(record['rep_genome']) == 1:
                 rep_genomes.append(record['species_id'])
         print("rep", rep_genomes[:10])
         species_id = wildcards['species']
