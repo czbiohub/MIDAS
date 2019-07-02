@@ -173,7 +173,7 @@ rule uclust_genes:
     shell:
         """
         cat {wildcards.pid}
-        vsearch -cluster_fast {input.centroids} -id {params.pid} -threads {threads} \
+        vsearch -cluster_fast {input.centroids} -id 0.95 -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
 
