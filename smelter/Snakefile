@@ -206,7 +206,7 @@ rule store_gene_info:
                     genes[r['gene_id']][centroid_id[pid]] = r['centroid_id']
                 elif r['type'] == 'S': ## centroids
                     print(r['cluster_id'])
-                    genes[r['gene_id']][cluster_id[pid]] = r['cluster_id']
+                    genes[r['gene_id']]["%s_%s" % ("cluster_id", str(pid))] = r['cluster_id']
                     genes[r['gene_id']][centroid_id[pid]] = r['centroid_id']
                     #stats['centroids_%s' % pid] += 1
                 else:
