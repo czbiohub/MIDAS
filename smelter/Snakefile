@@ -23,6 +23,7 @@ with open(toc_fp) as f:
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
 print(GENOMES)
+exit(0)
 
 
 
