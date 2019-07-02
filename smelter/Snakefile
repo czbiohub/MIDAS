@@ -143,10 +143,9 @@ rule write_genes:
                     genes[rec.id] = str(rec.seq).upper()
                     stats['genes'] += 1
         ## write genes
-        file = utility.iopen(output['genes'], 'w')
-        for geneid, geneseq in genes.items():
-            file.write('>%s\n%s\n' % (geneid, geneseq))
-        file.close()
+        with open(output['genes'], 'w') as file:
+            for geneid, geneseq in genes.items():
+                file.write('>%s\n%s\n' % (geneid, geneseq))
 
 rule uclust_genes_99:
     input:
