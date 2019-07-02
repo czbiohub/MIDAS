@@ -125,12 +125,11 @@ rule write_genes:
         ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
         ## might run into command arguments too long if do it in a Snakemake way
         genomes = SPECIES[params['sp_id']]
-        print(genomes)
         genes = {}
         stats = {}
         stats['genes'] = 0
         for genome in genomes:
-            genome_file = '%s/%s/%.ffn' % (params['genome_fp'], genome, genome)
+            genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
             for rec in Bio.SeqIO.parse(genome_file, 'fasta'):
                 if str(rec.seq) == '' or str(rec.id) in ['', '|']:
                     continue
