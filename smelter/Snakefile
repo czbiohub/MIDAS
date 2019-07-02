@@ -324,24 +324,39 @@ def parse_mapping_file(mapfile):
 
 rule build_marker_db:
     input:
-        genes = str(pangenomes_dir/"{species}"/"centroids.ffn"),
-        hmm_path = str(project_dir/"marker_genes"/"temp"/"{species}.hmmsearch"),
-        mapfile = mapfile_fp
+        ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
+        hmm_path = str(project_dir/"marker_genes"/"temp"/"{genome}.hmmsearch"),
+        mapfile = str(mapfile)
     output:
-        fasta = str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.fa"),
-        info = str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.map")
+        fasta = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"),
+        info = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.map")
     params:
         max_evalue = 1e-5,
         min_cov = 0.00
     run:
-        rep_genomes = []
-        for record in parse_mapping_file(input['mapfile']):
-            if int(record['rep_genome']) == 1:
-                rep_genomes.append(record['species_id'])
-        print("rep", rep_genomes[:10])
-        species_id = wildcards['species']
-        fna = parse_fasta(input['genes'])
+        genome_id = wildcards['genome']
+        species_id = GENOMES[genome_id]
+
+        ffn = parse_fasta(input['ffn'])
+
         with open(output['fasta'], "w") as ofasta, open(output['info'], "w") as oinfo:
+            for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
+                gene = ffn[h['query']].upper()
+                info = [species_id, genome_id, h['query'], len(gene), h['target']]
+                oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
+                if line[2]:
+                    ofasta.write('>%s\n%s\n' % (h['query'], gene))
+
+
+rep_genomes = []
+for record in parse_mapping_file(input['mapfile']):
+    if int(record['rep_genome']) == 1:
+        rep_genomes.append(record['species_id'])
+print("rep", rep_genomes[:10])
+    run:
+        species_id =
+        fna = parse_fasta(input['genes'])
+
             for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
                 genome_id = h['query'].rsplit("_", 1)[0] ## FULLY dependent on the IGGdb+ prokka gene format
                 geneseq = fna[h['query']].upper()
@@ -349,7 +364,7 @@ rule build_marker_db:
                 oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
                 ## if genome.is_rep
                 if genome_id in rep_genomes:
-                    ofasta.write('>%s\n%s\n' % (h['query'], geneseq))
+
 
 rule _all_hmm:
     input:
