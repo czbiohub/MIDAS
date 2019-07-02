@@ -148,10 +148,6 @@ rule write_genes:
             file.write('>%s\n%s\n' % (geneid, geneseq))
         file.close()
 
-rule _all_genes:
-    input:
-        expand(str(pangenomes_dir/"{species}"/"genes.ffn"), species = TEST_SPECIES)
-
 rule uclust_genes_99:
     input:
         genes = str(pangenomes_dir/"{species}"/"genes.ffn")
@@ -166,6 +162,10 @@ rule uclust_genes_99:
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
+
+rule _all_cluster:
+    input:
+        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"), species = TEST_SPECIES)
 
 rule uclust_genes:
     input:
