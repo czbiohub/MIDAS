@@ -213,15 +213,13 @@ rule store_gene_info:
                 else:
                     continue
         """ store_cluster_membership: Map gene to 99% ID centroids at each clustering %ID cutoff """
-        for gene in genes.values():
+        for id, gene in genes.items():
             gene["centroid_99"] = gene["centroid_id_99"]
             gene["centroid_95"] = genes[ gene["centroid_99"] ]["centroid_id_95"]
-            #gene.centroid_99 = gene.centroid_id[99]
-            #gene.centroid_95 = genes[gene.centroid_99].centroid_id[95]
-            #gene.centroid_90 = genes[gene.centroid_99].centroid_id[90]
-            #gene.centroid_85 = genes[gene.centroid_99].centroid_id[85]
-            #gene.centroid_80 = genes[gene.centroid_99].centroid_id[80]
-            #gene.centroid_75 = genes[gene.centroid_99].centroid_id[75]
+            gene["centroid_90"] = genes[ gene["centroid_99"] ]["centroid_id_90"]
+            gene["centroid_85"] = genes[ gene["centroid_99"] ]["centroid_id_85"]
+            gene["centroid_80"] = genes[ gene["centroid_99"] ]["centroid_id_80"]
+            gene["centroid_75"] = genes[ gene["centroid_99"] ]["centroid_id_75"]
         #print(genes[gene_id])
         ## write_gene_into
         file = utility.iopen(output[0], 'w')
