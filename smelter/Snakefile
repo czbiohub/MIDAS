@@ -202,12 +202,12 @@ rule store_gene_info:
         for pid in [99, 95, 90, 85, 80, 75]:
             for r in parse_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
                 if r['type'] == 'H': ## non-centroids
-                    genes[r['gene_id']]["%s_%s" % ("cluster_id", str(pid))] = r['cluster_id']
-                    genes[r['gene_id']][centroid_id[pid]] = r['centroid_id']
+                    genes[r['gene_id']]["cluster_id_%s" % str(pid)] = r['cluster_id']
+                    genes[r['gene_id']]["centroid_id%s" % str(pid)] = r['centroid_id']
                 elif r['type'] == 'S': ## centroids
                     print(r['cluster_id'])
-                    genes[r['gene_id']]["%s_%s" % ("cluster_id", str(pid))] = r['cluster_id']
-                    genes[r['gene_id']][centroid_id[pid]] = r['centroid_id']
+                    genes[r['gene_id']]["cluster_id_%s" % str(pid)] = r['cluster_id']
+                    genes[r['gene_id']]["centroid_id%s" % str(pid)] = r['centroid_id']
                     #stats['centroids_%s' % pid] += 1
                 else:
                     continue
