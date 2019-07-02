@@ -228,7 +228,6 @@ rule store_gene_info:
         genomes = SPECIES[params['sp_id']]
         stats = {}
         stats['genes'] = 0
-        genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
         for genome in genomes:
             genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
             for rec in Bio.SeqIO.parse(genome_file, 'fasta'):
