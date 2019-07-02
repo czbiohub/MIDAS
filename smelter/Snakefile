@@ -18,8 +18,9 @@ mapfile_fp = str(project_dir/"mapfile")
 
 temp_path = Path(str(project_dir/"temp"))
 repgenome_path = Path(str(project_dir/"clean_set"))
-prokka_dir = Path(str(project_dir/"prokka"))
 species_dir = Path(str(project_dir/"species"))
+genomes_dir = Path(str(project_dir/"genomes"))
+prokka_dir = Path(str(project_dir/"prokka"))
 
 
 GENOMES = {}
@@ -43,9 +44,6 @@ with open(mapfile_fp, "w") as out:
             line = [genome, GENOMES[genome], 0]
         out.write('\t'.join(map(str, line)) + '\n')
 
-"""
-Gene annotation
-"""
 rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
@@ -63,6 +61,44 @@ rule species_map_genome:
             t = "%s/%s.fna.lz4" % (dst, genome)
             shutil.copyfile(f, t)
 
-rule _all_temp:
+rule _all_genomes:
     input:
         expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = list(SPECIES.keys()))
+
+
+SPECIES_0701 = ["GUT_GENOME096063","GUT_GENOME096203","GUT_GENOME147854",."GUT_GENOME001120",
+"GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152","GUT_GENOME095021",
+"GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808","GUT_GENOME140826"]
+
+GENOMES = GENOMES[:20]
+
+"""
+Gene annotation
+"""
+rule run_prokka:
+    input:
+        str(genomes_dir/'{genome}.fna.lz4')
+    output:
+        faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
+        ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
+        fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
+        genes = str(prokka_dir/'{genome}'/'{genome}.genes')
+    params:
+        outdir = str(prokka_dir/'{genome}'),
+        prefix = "{genome}",
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv'),
+        fna = str(genomes_dir/'{genome}.fna')
+    shell:
+        """
+        lz4 -d {input}
+
+        prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
+        --locustag {params.prefix} --centre X --compliant --force {params.fna}
+
+        mv {params.tsv} {output.genes}
+        rm {params.fna}
+        """
+
+rule _all_prokka:
+    input:
+        expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome=GENOMES)
