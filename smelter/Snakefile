@@ -189,7 +189,8 @@ def parse_uclust(inpath):
 
 rule store_gene_info:
     input:
-        expand(str(pangenomes_dir/"{{species}}"/"temp"/"uclust.{pid}.txt"), pid=[99,95, 90, 85, 80, 75])
+        #expand(str(pangenomes_dir/"{{species}}"/"temp"/"uclust.{pid}.txt"), pid=[99,95, 90, 85, 80, 75])
+        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
     output:
         str(pangenomes_dir/"{species}"/"gene_info.txt")
     params:
