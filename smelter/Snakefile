@@ -154,7 +154,8 @@ rule uclust_genes_99:
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt")
     params:
         pid = 0.99
-    threads: 40
+    threads:
+        46
     shell:
         """
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
@@ -258,10 +259,9 @@ rule copy_centroids:
     shell:
         "cp {input} {output}"
 
-rule _all_test:
+rule _all_pangenome_build:
     input:
         expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
-
 
 """
 Marker genes database: search markder gene HMMs against pangenomes
@@ -313,37 +313,42 @@ def find_hits(inpath, max_evalue, min_cov):
             hits[r['target']] = r
     return list(hits.values())
 
+def parse_mapping_file(mapfile):
+    infile = utility.iopen(mapfile)
+    fields = next(infile).rstrip('\n').split('\t')
+    for line in infile:
+        values = line.rstrip('\t').split('\t')
+        record = dict([(f,v) for f, v in zip(fields, values)])
+        yield record
+
 rule build_marker_db:
     input:
-        ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
-        hmm_path = str(project_dir/"marker_genes"/"temp"/"{genome}.hmmsearch"),
+        genes = str(pangenomes_dir/"{species}"/"centroids.ffn"),
+        hmm_path = str(project_dir/"marker_genes"/"temp"/"{species}.hmmsearch"),
         mapfile = mapfile_fp
     output:
-        fasta = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"),
-        info = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.map")
+        fasta = str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.fa"),
+        info = str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.map")
     params:
         max_evalue = 1e-5,
-        min_cov = 0.00,
-        genomeid = "{genome}"
+        min_cov = 0.00
     run:
-        genomes = SPECIES[params['sp_id']]
-        ## we just need to find out the species_id
-        with open (input['mapfile']) as fmap:
-            for line in fmap:
-                line = line.strip().split('\t')
-                if params['genomeid'] == line[0]:
-                    break
-        speciesid = line[1]
-
+        rep_genomes = []
+        for record in parse_mapping_file(mapfile):
+            if record['rep_genome']:
+                rep_genomes.append(record['species_id'])
+        print(rep_genome[:10])
+        species_id = wildcards['species']
         fna = parse_fasta(input['ffn'])
         ofasta = open(output['fasta'], "w")
         oinfo = open(output['info'], "w")
         for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
+            print(h)
             gene = fna[h['query']].upper()
             info = [speciesid, params['genomeid'], h['query'], len(gene), h['target']]
             oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
-            if line[2]:
-                ofasta.write('>'+h['query']+'\n'+gene+'\n')
+            if line[2]: ## here we only write the markder genes... should we just run hmm over the pangenomes/centroids.ffn. i think so ...
+                ofasta.write('>' + h['query'] + '\n' + gene+'\n')
         ofasta.close()
         oinfo.close()
 
