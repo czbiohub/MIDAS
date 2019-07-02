@@ -212,7 +212,6 @@ rule store_gene_info:
                     stats['centroids_%s' % pid] += 1
                 else:
                     continue
-        print(genes[r['gene_id']])
         """ store_cluster_membership: Map gene to 99% ID centroids at each clustering %ID cutoff """
         for gene_id, gene in genes.items():
             print(gene)
