@@ -42,11 +42,10 @@ with open(mapfile_fp, "w") as out:
             line = [genome, GENOMES[genome], 0]
         out.write('\t'.join(map(str, line)) + '\n')
 
-
 """
 Gene annotation
 """
-
+print(SPECIES.keys()[:10])
 rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
