@@ -169,7 +169,7 @@ rule uclust_genes:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.txt")
     params:
-        pid = wildcards.pid / 100 ### TODO /100.0 ## not sure whether this is the way
+        pid = {wildcards.pid} / 100 ### TODO /100.0 ## not sure whether this is the way
     shell:
         """
         cat {params.pid}
