@@ -94,7 +94,8 @@ rule run_prokka:
         lz4 -d {input} && \
         prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
         --locustag {params.prefix} --centre X --compliant --force {params.fna} &&
-        mv {params.tsv} {output.genes}
+        mv {params.tsv} {output.genes} &&
+        rm {params.fna}
         """
 
 rule _all_prokka:
