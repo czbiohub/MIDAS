@@ -29,15 +29,7 @@ with open(toc_fp) as f:
 print(len(SPECIES))
 
 
-if not os.path.isfile(mapfile_fp):
-    with open(mapfile_fp, "w") as out:
-        out.write('\t'.join([genome_id, species_id, rep_genome] + '\n')
-        for genome in GENOMES:
-            if GENOMES[genome] == genome:
-                line = [genome, GENOMES[genomes], 1]
-            else:
-                line = [genome, GENOMES[genomes], 0]
-            out.write('\t'.join(line) + '\n')
+
 exit(0)
 
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
