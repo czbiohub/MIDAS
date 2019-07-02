@@ -334,7 +334,7 @@ rule build_marker_db:
         min_cov = 0.00
     run:
         genome_id = wildcards['genome']
-        species_id = GENOMES[genome_id]
+        species_id = GENOMES[str(genome_id)]
 
         ffn = parse_fasta(input['ffn'])
 
