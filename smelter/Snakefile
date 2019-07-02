@@ -76,7 +76,7 @@ SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GE
             "GUT_GENOME140826"]
 
 TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
-TEST_GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
+GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 
 rule _all_genomes:
     input:
