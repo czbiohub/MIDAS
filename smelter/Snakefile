@@ -4,6 +4,8 @@
 #
 # Chunyu Zhao 2019-06-26
 
+"""TODO: gene_features for rep_genomes"""
+
 import os, subprocess, sys, shutil, gzip
 from pathlib import Path
 from midas import utility
@@ -384,5 +386,24 @@ rule build_hsblastn_db:
     shell:
         "hs-blastn index {input}"
 
-## I don't have the representative genomes database....I need to quickly go over this this afternoon
-## after the marker genes database
+""" IGGdb: map prokka gene to pangenomes"""
+rule run_blast:
+    input:
+        pan = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/pangenomes/{genome}/centroids.fa",
+        prokka = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka/{genome}/{genome}.ffn"
+    output:
+        "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/prokka_to_pan/{genome}.blastn.tsv"
+    shell:
+        """
+        makeblastdb -in {input.pan} -dbtype nucl
+
+        blastn -query {input.prokka} \-db {input.pan} -outfmt  6 \
+        -num_threads 1 \
+        -evalue 1e-10 \
+        -max_target_seqs 1 \
+        -out {output} \
+        """
+
+rule _all_blast:
+    input:
+        expand("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/prokka_to_pan/{genome}.blastn.tsv", genome = GENOMES)
