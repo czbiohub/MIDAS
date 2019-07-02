@@ -16,6 +16,7 @@ project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
 toc_fp = str(project_dir/"genomes2species.tab")
 
 mapfile_fp = str(project_dir/"mapfile")
+phyeco_hmm_fp = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0/phyeco.hmm"
 
 temp_path = Path(str(project_dir/"temp"))
 repgenome_path = Path(str(project_dir/"clean_set"))
@@ -117,6 +118,7 @@ GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 print(GENOMES)
 
 ## This should be a faster way to do this. But let's keep it work now.
+## might run into command arguments too long if do it in a Snakemake way
 rule write_genes:
     input:
         genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
@@ -127,8 +129,6 @@ rule write_genes:
         sp_id = "{species}",
         genome_fp = str(prokka_dir)
     run:
-        ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
-        ## might run into command arguments too long if do it in a Snakemake way
         genomes = SPECIES[params['sp_id']]
         genes = {}
         stats = {}
@@ -154,7 +154,7 @@ rule uclust_genes_99:
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt")
     params:
         pid = 0.99
-    threads: 1
+    threads: 4
     shell:
         """
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
@@ -269,7 +269,7 @@ Marker genes database: search markder gene HMMs against pangenomes
 rule hmm_search:
     input:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
-        phyeco = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0/phyeco.hmm"
+        phyeco = phyeco_hmm_fp
     output:
         str(project_dir/"marker_genes"/"temp"/"{genome}.hmmsearch")
     threads: 1
@@ -326,6 +326,8 @@ rule build_marker_db:
         min_cov = 0.00,
         genomeid = "{genome}"
     run:
+        genomes = SPECIES[params['sp_id']]
+        GENOMES[]
         ## we just need to find out the species_id
         with open (input['mapfile']) as fmap:
             for line in fmap:
@@ -345,7 +347,6 @@ rule build_marker_db:
                 ofasta.write('>'+h['query']+'\n'+gene+'\n')
         ofasta.close()
         oinfo.close()
-        #oinfo.write('\t'.join(['species_id', 'genome_id', 'gene_id', 'gene_length', 'marker_id']) + '\n')
 
 rule _all_hmm:
     input:
