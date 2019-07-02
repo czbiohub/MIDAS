@@ -270,7 +270,7 @@ rule build_marker_db:
     input:
         ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
         hmm_path = str(project_dir/"marker_genes"/"temp"/"{genome}.hmmsearch"),
-        mapfile = str(mapfile)
+        mapfile = mapfile_fp
     output:
         fasta = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"),
         info = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.map")
