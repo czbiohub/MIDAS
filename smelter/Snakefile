@@ -212,7 +212,7 @@ rule store_gene_info:
                     stats['centroids_%s' % pid] += 1
                 else:
                     continue
-        print(genes)
+        print(genes.keys())
         ## write_gene_into
         file = utility.iopen(output[0], 'w')
         header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
