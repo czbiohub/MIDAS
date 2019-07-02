@@ -66,7 +66,7 @@ GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 
 rule all_pan_hmm:
     input:
-        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
+        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES),
         expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)]
 
 
