@@ -29,7 +29,7 @@ with open(toc_fp) as f:
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
         Gpath[genome_id] = str(project_dir) + "/clean_set/GUT_GENOME%s" % (species_id)
-print(GENOMES[genome_id])
+print(Gpath[genome_id])
 exit(0)
 
 with open(mapfile_fp, "w") as out:
@@ -59,7 +59,6 @@ rule test_layout:
         str()
     params:
         genomes = SPECIES["{species}"]
-
     shell:
 """
 
