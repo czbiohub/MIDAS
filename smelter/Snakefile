@@ -177,7 +177,7 @@ rule uclust_genes:
         echo $pid
         pid=`calc $pid/100`
         echo $pid
-        vsearch -cluster_fast {input.centroids} -id {params.pid} -threads {threads} \
+        vsearch -cluster_fast {input.centroids} -id {wildcards.pid} -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
 
