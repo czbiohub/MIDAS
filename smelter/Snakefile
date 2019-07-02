@@ -162,28 +162,28 @@ rule uclust_genes_99:
                 -centroids {output.centroids} -uc {output.uc}
         """
 
-rule _all_cluster:
-    input:
-        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"), species = TEST_SPECIES)
-
 rule uclust_genes:
     input:
-        centroids = "pan_genomes/{species}/temp/centroids.99.ffn"
+        centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn")
     output:
-        centroids = "pan_genomes/{species}/temp/centroids.{pid}.ffn",
-        uc = "pan_genomes/{species}/temp/centroids.{pid}.txt",
+        centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"),
+        uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.txt")
     params:
-        pid = "{wildcard.pid}"### TODO /100.0 ## not sure whether this is the way
+        pid = wildcards.pid / 100 ### TODO /100.0 ## not sure whether this is the way
     shell:
         """
+        cat {params.pid}
         vsearch -cluster_fast {input.centroids} -id {params.pid} -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
 
 rule _all_uclusted_genes:
     input:
-        expand("pan_genomes/temp/centroids.{pid}.ffn", pid=[95, 90, 85, 80, 75])
+        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = SPECIES)
 
+rule _all_cluster:
+    input:
+        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
 
 
 rule write_gene_info:
