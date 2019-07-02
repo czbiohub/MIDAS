@@ -59,9 +59,9 @@ rule species_map_genome:
         src = params['src']
         dst = params['dst']
         for genome in genomes:
-            from = "%s/%s.fna.lz4" % (src, genome)
-            to = "%s/%s.fna.lz4" % (dst, genome)
-            shutil.copyfile(from, to)
+            f = "%s/%s.fna.lz4" % (src, genome)
+            t = "%s/%s.fna.lz4" % (dst, genome)
+            shutil.copyfile(f, t)
 
 rule _all_temp:
     input:
