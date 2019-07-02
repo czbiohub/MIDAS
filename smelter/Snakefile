@@ -50,7 +50,7 @@ rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
-        str(temp_path/"{species}"/"{species}.fna.lz4")
+        str(temp_path/"{species}.fna.lz4")
     params:
         genomes = SPECIES["{species}"]
     run:
@@ -58,4 +58,4 @@ rule species_map_genome:
 
 rule _all_temp:
     input:
-        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), species = list(SPECIES.keys()))
+        expand(str(temp_path/"{species}.fna.lz4"), species = list(SPECIES.keys()))
