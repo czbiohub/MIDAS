@@ -10,7 +10,7 @@ from midas import utility
 import Bio.SeqIO
 from collections import defaultdict
 from functools import reduce
-
+from operator import concat
 
 project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
 toc_fp = str(project_dir/"genomes2species.tab")
