@@ -22,7 +22,7 @@ with open(toc_fp) as f:
         species_id = line.rstrip('\n').split('\t')[-1]
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
-print(GENOMES)
+print(GENOMES['GUT_GENOME008844'])
 exit(0)
 
 
