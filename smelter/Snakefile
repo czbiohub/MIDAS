@@ -67,6 +67,8 @@ rule species_map_genome:
 
 
 SPECIES_ALL = list(SPECIES.keys())
+GENOMES_ALL = list(GENOMES.keys())
+
 SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
             "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
             "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
@@ -78,8 +80,6 @@ GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 rule _all_genomes:
     input:
         expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_0701)
-
-GENOMES = list(GENOMES.keys())
 
 """
 Gene annotation
