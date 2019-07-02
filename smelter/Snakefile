@@ -16,9 +16,9 @@ toc_fp = str(project_dir/"genomes2species.tab")
 
 mapfile_fp = str(project_dir/"mapfile")
 
-temp_fp = Path(str(project_dir/"temp"))
+temp_path = Path(str(project_dir/"temp"))
 repgenome_path = Path(str(project_dir/"clean_set"))
-prokka_dir = Path(str(project_dir/"prokka"))
+prokka_path = Path(str(project_dir/"prokka"))
 
 
 GENOMES = {}
