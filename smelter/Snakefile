@@ -248,19 +248,18 @@ rule store_gene_info:
             file.write('\t'.join(str(_) for _ in values) + '\n')
         file.close()
 
-rule _all_test:
-    input:
-        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
-
 rule copy_centroids:
     input:
-        "pan_genomes/{species}/temp/centroids.99.ffn"
+        str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn")
     output:
-        "pan_genomes/{species}/centroids.99.ffn",
+        str(pangenomes_dir/"{species}"/"centroids.99.ffn")
     shell:
         "cp {input} {output}"
 
-
+rule _all_test:
+    input:
+        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES),
+        expand(str(pangenomes_dir/"{species}"/"centroids.99.ffn"), species = TEST_SPECIES)]
 
 
 """
@@ -269,7 +268,7 @@ Marker genes database: search markder gene HMMs against pangenomes
 rule hmm_search:
     input:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
-        phyeco = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/phyeco.hmm"
+        phyeco = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0/phyeco.hmm"
     output:
         str(project_dir/"marker_genes"/"temp"/"{genome}.hmmsearch")
     threads: 1
@@ -358,3 +357,6 @@ rule build_hsblastn_db:
         str(project_dir/"marker_genes"/"phyeco.fa.sa")
     shell:
         "hs-blastn index {input}"
+
+## I don't have the representative genomes database....I need to quickly go over this this afternoon
+## after the marker genes database
