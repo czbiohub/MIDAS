@@ -15,9 +15,10 @@ project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
 toc_fp = str(project_dir/"genomes2species.tab")
 
 mapfile_fp = str(project_dir/"mapfile")
-temp_fp = str(project_dir/"temp")
-repgenome_path = str(project_dir/"clean_set")
-prokka_dir = str(project_dir/"prokka")
+
+temp_fp = Path(str(project_dir/"temp"))
+repgenome_path = Path(str(project_dir/"clean_set"))
+prokka_dir = Path(str(project_dir/"prokka"))
 
 
 GENOMES = {}
