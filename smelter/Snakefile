@@ -53,9 +53,9 @@ rule species_map_genome:
     output:
         str(temp_path/"{species}"/"{species}.fna.lz4")
     params:
-        genomes = SPECIES["{species}"]
+        genomes = SPECIES["{genome}"]
     run:
-        print(params['genomes'])
+        print(params[wildcards.species])
 
 rule _all_temp:
     input:
