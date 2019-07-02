@@ -189,17 +189,20 @@ def parse_uclust(inpath):
 
 rule store_gene_info:
     input:
-        expand(str(pangenomes_dir/"{{species}}"/"temp"/"uclust.{pid}.txt"), pid=[95, 90, 85, 80, 75])
+        uclust = expand(str(pangenomes_dir/"{{species}}"/"temp"/"uclust.{pid}.txt"), pid=[95, 90, 85, 80, 75]),
+        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES)
     output:
         str(pangenomes_dir/"{species}"/"gene_info.txt")
     params:
         tmp_dir = str(pangenomes_dir/"{species}"/"temp"),
-        out_dir = str(pangenomes_dir/"{species}")
+        out_dir = str(pangenomes_dir/"{species}"),
+        sp_id = "{species}",
+        genome_fp = str(prokka_dir)
     run:
         genes = defaultdict(lambda: defaultdict(int))
-        cluster_id = {}
-        centroid_id = {}
         stats = {}
+
+        """ store_gene_info """
         for pid in [99, 95, 90, 85, 80, 75]:
             stats['centroids_%s' % pid] = 0
             for r in parse_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
@@ -212,43 +215,17 @@ rule store_gene_info:
                     stats['centroids_%s' % pid] += 1
                 else:
                     continue
+
         """ store_cluster_membership: Map gene to 99% ID centroids at each clustering %ID cutoff """
-        print(genes.keys())
-        for id, gene in genes.items():
+        for gene in genes.values():
             gene["centroid_99"] = gene["centroid_id_99"]
             gene["centroid_95"] = genes[ gene["centroid_99"] ]["centroid_id_95"]
             gene["centroid_90"] = genes[ gene["centroid_99"] ]["centroid_id_90"]
             gene["centroid_85"] = genes[ gene["centroid_99"] ]["centroid_id_85"]
             gene["centroid_80"] = genes[ gene["centroid_99"] ]["centroid_id_80"]
             gene["centroid_75"] = genes[ gene["centroid_99"] ]["centroid_id_75"]
-        #print(genes[gene_id])
-        ## write_gene_into
-        file = utility.iopen(output[0], 'w')
-        header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
-        #header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
-        file.write('\t'.join(header)+'\n')
-        for gene_id in sorted(genes.keys()):
-            g = genes[gene_id]
-            #values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
-            values = [gene_id, g["centroid_99"], g["centroid_95"], g["centroid_90"], g["centroid_85"], g["centroid_80"], g["centroid_75"]]
-        file.write('\t'.join(str(_) for _ in values) + '\n')
-        file.close()
 
-rule _all_test:
-    input:
-        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
-
-rule write_gene_info:
-    input:
-        genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
-    output:
-        str(pangenomes_dir/"{species}"/"gene_info_full.txt")
-    params:
-        sp_id = "{species}",
-        genome_fp = str(prokka_dir)
-    run:
         genomes = SPECIES[params['sp_id']]
-        genes = {}
         stats = {}
         stats['genes'] = 0
         genome_file = '%s/%s/%s.ffn' % (params['genome_fp'], genome, genome)
@@ -258,12 +235,24 @@ rule write_gene_info:
                 if str(rec.seq) == '' or str(rec.id) in ['', '|']:
                     continue
                 else:
-                    genome_id = genome
-                    gene_length = len(rec.seq)
-                    gene_seq = rec.seq
-                    gene_id = rec.id
-                    genes[rec.id] = str(rec.seq).upper()
+                    genes[rec.id]["genome_id"] = genome
+                    genes[rec.id]["gene_length"] = len(rec.seq)
                     stats['genes'] += 1
+
+        """ write_gene_info """
+        file = utility.iopen(output[0], 'w')
+        #header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
+        file.write('\t'.join(header)+'\n')
+        for gene_id in sorted(genes.keys()):
+            g = genes[gene_id]
+            values = [gene_id, g['genome_id'],g['gene_length'],g["centroid_99"], g["centroid_95"], g["centroid_90"], g["centroid_85"], g["centroid_80"], g["centroid_75"]]
+        file.write('\t'.join(str(_) for _ in values) + '\n')
+        file.close()
+
+rule _all_test:
+    input:
+        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
 
 rule copy_centroids:
     input:
