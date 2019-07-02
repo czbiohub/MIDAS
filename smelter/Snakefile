@@ -351,6 +351,31 @@ rule _all_hmm:
     input:
         expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)
 
+rule build_mapping_cutsoffs:
+    output:
+        str(project_dir/"marker_genes"/"phyeco.mapping_cutoffs"),
+    run:
+        cutoffs = {
+            'B000032':95.50,
+            'B000039':94.75,
+            'B000041':98.00,
+            'B000062':97.25,
+            'B000063':96.00,
+            'B000065':98.00,
+            'B000071':95.25,
+            'B000079':98.00,
+            'B000080':95.25,
+            'B000081':97.00,
+            'B000082':95.25,
+            'B000086':96.75,
+            'B000096':96.75,
+            'B000103':95.25,
+            'B000114':94.50}
+        outfile = open(output[0], 'w')
+        for marker_id, cutoff in cutoffs.items():
+            outfile.write(marker_id+'\t'+str(cutoff)+'\n')
+        outfile.close()
+
 rule build_hsblastn_db:
     input:
         str(project_dir/"marker_genes"/"phyeco.fa")
