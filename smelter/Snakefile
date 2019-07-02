@@ -17,6 +17,8 @@ toc_fp = str(project_dir/"genomes2species.tab")
 mapfile_fp = str(project_dir/"mapfile")
 temp_fp = str(project_dir/"temp")
 repgenome_path = str(project_dir/"clean_set")
+prokka_dir = str(project_dir/"prokka")
+
 
 GENOMES = {}
 SPECIES = defaultdict(list)
@@ -29,8 +31,6 @@ with open(toc_fp) as f:
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
         Gpath[genome_id] = str(project_dir) + "/clean_set/%s" % str(species_id)
-print(Gpath[genome_id])
-exit(0)
 
 with open(mapfile_fp, "w") as out:
     out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
@@ -42,42 +42,23 @@ with open(mapfile_fp, "w") as out:
         out.write('\t'.join(map(str, line)) + '\n')
 
 
-prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
-mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
-
-## TO use IGGdb
-#from iggdb import IGGdb
-#project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0")
-#iggdb = IGGdb(str(project_dir/"meatadata"/"species_info.tsv"))
-#REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
-
-"""
-rule test_layout:
-    input:
-        str(project_dir/"clean_set"/"{species}"/)
-    output:
-        str()
-    params:
-        genomes = SPECIES["{species}"]
-    shell:
-"""
-
 """
 Gene annotation
 """
-## we prefer not to save intermediate files, but rather generate them on the fly
-rule cleanup_header:
+
+rule species_map_genome:
     input:
-        str(repgenome_path/'{genome}.fna')
+        str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
-        str(temp_path/'{genome}.fna')
+        str(temp_path/"{species}"/"{species}.fna.lz4")
     params:
-        genome = "{genome}"
-    shell:
-        """
-        sed "s/|/_/g" {input} > {output}
-        #sed "s=^>=>${params.genome}|=" {input} | sed "s/|/_/g" > {output}
-        """
+        genomes = SPECIES["{genome}"]
+    run:
+        print(params['genomes'])
+
+rule _all_temp:
+    input:
+        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), genome = GENOMES.keys())
 
 rule run_prokka:
     input:
@@ -86,11 +67,12 @@ rule run_prokka:
         faa = str(prokka_dir/'{genome}'/'{genome}.faa'),
         ffn = str(prokka_dir/'{genome}'/'{genome}.ffn'),
         fna = str(prokka_dir/'{genome}'/'{genome}.fna'),
-        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
+
         #genes = str(prokka_dir/'{genome}'/'{genome}.genes')
     params:
         outdir = str(prokka_dir/'{genome}'),
         prefix = "{genome}",
+        tsv = str(prokka_dir/'{genome}'/'{genome}.tsv')
     shell:
         """
         prokka --kingdom Bacteria --outdir {params.outdir} --prefix {params.prefix} \
