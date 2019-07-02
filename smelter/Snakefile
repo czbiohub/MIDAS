@@ -152,7 +152,7 @@ rule uclust_genes_99:
     output:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt"),
-        centroids_species = str(pangenomes_dir/"{species}"/"centroids.ffn"),
+        #centroids_species = str(pangenomes_dir/"{species}"/"centroids.ffn"),
     params:
         pid = 0.99
     threads: 1
@@ -161,7 +161,7 @@ rule uclust_genes_99:
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
 
-        cp {output.centroids} {output.centroids_species}
+        #cp {output.centroids} {output.centroids_species}
         """
 
 rule uclust_genes:
@@ -252,6 +252,14 @@ rule store_gene_info:
             values = [gene_id, g['genome_id'],g['gene_length'],g["centroid_99"], g["centroid_95"], g["centroid_90"], g["centroid_85"], g["centroid_80"], g["centroid_75"]]
             file.write('\t'.join(str(_) for _ in values) + '\n')
         file.close()
+
+rule copy_centroids:
+    input:
+        str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn")
+    output:
+        str(pangenomes_dir/"{species}"/"centroids.ffn")
+    shell:
+        "cp {input} {output}"
 
 rule _all_test:
     input:
