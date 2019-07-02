@@ -113,7 +113,8 @@ Pan-genome
 TEST_SPECIES = ["GUT_GENOME125418"]
 GENOMES = SPECIES[TEST_SPECIES[0]]
 g = []
-for species in SPECIES[:2]:
+for i, species in enumerate(SPECIES):
+    if i > 3: break
     g = g + SPECIES[species]
 print(len(g))
 ## This should be a faster way to do this. But let's keep it work now.
