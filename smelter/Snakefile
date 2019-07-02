@@ -137,8 +137,8 @@ rule write_genes:
                     continue
                 else:
                     ### STILL needs changes here
-                    gene.genome_id = genome.id
-                    gene.length = len(gene.seq)
+                    #gene.genome_id = genome.id
+                    #gene.length = len(gene.seq)
                     genes[rec.id] = str(rec.seq).upper()
                     stats['genes'] += 1
         ## write genes
