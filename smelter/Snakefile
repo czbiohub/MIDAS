@@ -58,7 +58,7 @@ rule species_map_genome:
 
 rule _all_temp:
     input:
-        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), genome = GENOMES.keys())
+        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), species = SPECIES.keys())
 
 rule run_prokka:
     input:
