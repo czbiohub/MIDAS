@@ -62,7 +62,7 @@ rule species_map_genome:
             t = "%s/%s.fna.lz4" % (dst, genome)
             shutil.copyfile(f, t)
 
-SPECIES_0701 = ["GUT_GENOME096063","GUT_GENOME096203","GUT_GENOME147854","GUT_GENOME001120", \
+SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
             "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
             "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
             "GUT_GENOME140826"]
@@ -114,7 +114,7 @@ TEST_SPECIES = ["GUT_GENOME125418"]
 GENOMES = SPECIES[TEST_SPECIES[0]]
 g = []
 for i, species in enumerate(SPECIES):
-    if i > 2: break
+    if i > 3: break
     g = g + SPECIES[species]
 print(len(g))
 ## This should be a faster way to do this. But let's keep it work now.
