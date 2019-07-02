@@ -61,10 +61,8 @@ rule test_layout:
         genomes = SPECIES["{species}"]
 
     shell:
-        """
-        cat {params.genomes}
-        """
 """
+
 """
 Gene annotation
 """
