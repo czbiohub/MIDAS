@@ -59,7 +59,7 @@ rule species_map_genome:
         src = params['src']
         dst = params['dst']
         for genome in genomes:
-            print("%s/%s.fna/lz4" % (src, genome))
+            print("%s/%s.fna.lz4" % (src, genome))
 
 rule _all_temp:
     input:
