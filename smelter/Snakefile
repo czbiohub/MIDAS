@@ -204,15 +204,26 @@ rule store_gene_info:
             stats['centroids_%s' % pid] = 0
             for r in parse_uclust('%s/uclust.%s.txt' % (params['tmp_dir'], pid)):
                 if r['type'] == 'H': ## non-centroids
-                    genes[r['gene_id']]["cluster_%s" % str(pid)] = r['cluster_id']
-                    genes[r['gene_id']]["centroid_%s" % str(pid)] = r['centroid_id']
+                    genes[r['gene_id']]["cluster_id_%s" % str(pid)] = r['cluster_id']
+                    genes[r['gene_id']]["centroid_id_%s" % str(pid)] = r['centroid_id']
                 elif r['type'] == 'S': ## centroids
-                    genes[r['gene_id']]["cluster_%s" % str(pid)] = r['cluster_id']
-                    genes[r['gene_id']]["centroid_%s" % str(pid)] = r['centroid_id']
+                    genes[r['gene_id']]["cluster_id_%s" % str(pid)] = r['cluster_id']
+                    genes[r['gene_id']]["centroid_id_%s" % str(pid)] = r['centroid_id']
                     stats['centroids_%s' % pid] += 1
                 else:
                     continue
-        print(genes.keys())
+
+        """ store_cluster_membership: Map gene to 99% ID centroids at each clustering %ID cutoff """
+        for gene_id, gene in genes.items():
+            genes[gene_id]["centroid_99"] = genes[gene_id]["centroid_id_99"]
+            genes[gene_id]["centroid_95"] = genes[gene_id]["centroid_99"]["centroid_id_95"]
+            #gene.centroid_99 = gene.centroid_id[99]
+            #gene.centroid_95 = genes[gene.centroid_99].centroid_id[95]
+            #gene.centroid_90 = genes[gene.centroid_99].centroid_id[90]
+            #gene.centroid_85 = genes[gene.centroid_99].centroid_id[85]
+            #gene.centroid_80 = genes[gene.centroid_99].centroid_id[80]
+            #gene.centroid_75 = genes[gene.centroid_99].centroid_id[75]
+        print(genes[gene_id])
         ## write_gene_into
         file = utility.iopen(output[0], 'w')
         header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
