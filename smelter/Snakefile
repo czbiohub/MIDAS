@@ -52,7 +52,10 @@ rule species_map_genome:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
         str(temp_path/"{species}"/"{species}.fna.lz4")
+    #params:
+    #    genomes = SPECIES[wildcards.species]
     run:
+        print(wildcards['species'])
         print(input[0])
 
 rule _all_temp:
