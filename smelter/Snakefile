@@ -173,7 +173,7 @@ rule uclust_genes:
     #    pid = {wildcards.pid} / 100 ### TODO /100.0 ## not sure whether this is the way
     shell:
         """
-        cat {wildcards.pid}
+        cat {wildcards}
         vsearch -cluster_fast {input.centroids} -id 0.95 -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
