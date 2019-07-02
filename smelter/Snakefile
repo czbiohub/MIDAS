@@ -172,12 +172,9 @@ rule uclust_genes:
     shell:
         """
         calc(){{ awk "BEGIN {{ print "$*" }}"; }}
-        echo {wildcards.pid}
-        pid={wildcards.pid}
+        pid=`calc {wildcards.pid}/100`
         echo $pid
-        pid=`calc $pid/100`
-        echo $pid
-        vsearch -cluster_fast {input.centroids} -id {wildcards.pid} -threads {threads} \
+        vsearch -cluster_fast {input.centroids} -id $pid -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
 
