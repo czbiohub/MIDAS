@@ -50,7 +50,7 @@ rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
-        str(temp_path/"{species}"/"{species}.fna.lz4")
+        str(temp_path/"genomes"/"{species}.fna.lz4")
     params:
         src = str(repgenome_path/"{species}"),
         dst = str(temp_path/"genomes")
@@ -59,9 +59,10 @@ rule species_map_genome:
         src = params['src']
         dst = params['dst']
         for genome in genomes:
-            print("%s/%s.fna.lz4" % (src, genome))
+            from = "%s/%s.fna.lz4" % (src, genome)
+            to = "%s/%s.fna.lz4" % (dst, genome)
+            shutil.copyfile(from, to)
 
 rule _all_temp:
     input:
-        expand(str(temp_path/"{species}"/"{species}.fna.lz4"),
-                species = list(SPECIES.keys()))
+        expand(str(temp_path/genomes/"{species}.fna.lz4"), species = list(SPECIES.keys()))
