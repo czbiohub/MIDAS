@@ -221,7 +221,7 @@ rule store_gene_info:
         for gene_id in sorted(genes.keys()):
             g = genes[gene_id]
             #values = [g.id, g.genome_id, g.length, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
-            values = [gene_id, g.controid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
+            values = [gene_id, g.centroid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
         file.write('\t'.join(str(_) for _ in values) + '\n')
         file.close()
 
