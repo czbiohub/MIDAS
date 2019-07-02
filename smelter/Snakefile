@@ -31,7 +31,7 @@ print(len(SPECIES))
 
 if not os.path.isfile(mapfile_fp):
     with open(mapfile_fp, "w") as out:
-        out.write('\t'.join([genome_id, species_id, rep_genome]) + '\n')
+        out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
         for genome in GENOMES:
             if GENOMES[genome] == genome:
                 line = [genome, GENOMES[genomes], 1]
