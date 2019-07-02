@@ -111,6 +111,7 @@ Pan-genome
 """
 
 TEST_SPECIES = ["GUT_GENOME125418"]
+GENOMES = SPECIES[TEST_SPECIES[0]]
 ## This should be a faster way to do this. But let's keep it work now.
 rule write_genes:
     input:
