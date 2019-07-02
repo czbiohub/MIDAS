@@ -112,7 +112,7 @@ Pan-genome
 """
 
 TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
-GENOMES = [SPECIES[species] for species in TEST_SPECIES]
+GENOMES = [list(SPECIES[species]) for species in TEST_SPECIES]
 print(len(GENOMES))
 
 ## This should be a faster way to do this. But let's keep it work now.
@@ -251,9 +251,9 @@ rule store_gene_info:
 
 rule copy_centroids:
     input:
-        "pan_genomes/{species}/temp/centroids.99.ffn"
+        str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn")
     output:
-        "pan_genomes/{species}/centroids.ffn",
+        str(pangenomes_dir/"{species}"/"centroids.ffn")
     shell:
         "cp {input} {output}"
 
