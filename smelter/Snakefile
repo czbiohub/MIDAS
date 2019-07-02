@@ -154,7 +154,7 @@ rule uclust_genes_99:
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt")
     params:
         pid = 0.99
-    threads: 4
+    threads: 40
     shell:
         """
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
@@ -327,7 +327,6 @@ rule build_marker_db:
         genomeid = "{genome}"
     run:
         genomes = SPECIES[params['sp_id']]
-        GENOMES[]
         ## we just need to find out the species_id
         with open (input['mapfile']) as fmap:
             for line in fmap:
