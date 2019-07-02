@@ -112,11 +112,7 @@ Pan-genome
 
 TEST_SPECIES = ["GUT_GENOME125418"]
 GENOMES = SPECIES[TEST_SPECIES[0]]
-g = []
-for i, species in enumerate(SPECIES):
-    if i > 3: break
-    g = g + SPECIES[species]
-print(len(g))
+
 ## This should be a faster way to do this. But let's keep it work now.
 rule write_genes:
     input:
@@ -156,13 +152,11 @@ rule _all_genes:
     input:
         expand(str(pangenomes_dir/"{species}"/"genes.ffn"), species = TEST_SPECIES)
 
-### let's stop here
 rule uclust_genes_99:
     input:
-        # add pangenome_path from iggdb
         genes = str(pangenomes_dir/"{species}"/"genes.ffn")
     output:
-        centroids = str(pangenomes_dir/"{species}"/"temp"/"genes.ffn"),
+        centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.txt")
     params:
         pid = 0.99
