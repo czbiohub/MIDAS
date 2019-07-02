@@ -8,10 +8,22 @@ import os, subprocess, sys, shutil, gzip
 from pathlib import Path
 from midas import utility
 import Bio.SeqIO
+from collections import defaultdict
 
-# make this work for IGGdb 2.0
-# testing for agigate
-# testhing for agigate again
+
+project_id = Path("/mnt/chunyu20TB/midas-iggdb/IGGdbv2")
+toc_fp = str(project_id/"genomes2species.tab")
+GENOMES = {}
+SPECIES = defaultdict(list)
+with open(toc_fp) as f:
+    next(f)
+    for line in f:
+        genome_id = line.rstrip('\n').split('\t')[1]
+        species_id = line.rstrip('\n').split('\t')[-1]
+        GENOMES[genome_id] = species_id
+        SPECIES[species_id].append(genome_id)
+print(GENOMES)
+
 
 
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
