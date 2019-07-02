@@ -36,7 +36,7 @@ with open(mapfile_fp, "w") as out:
             line = [genome, GENOMES[genome], 1]
         else:
             line = [genome, GENOMES[genome], 0]
-        out.write('\t'.join(line) + '\n')
+        out.write('\t'.join(map(str, line)) + '\n')
 
 
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
