@@ -170,10 +170,11 @@ rule uclust_genes:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.txt")
     params:
-        pid = int("{{pid}}") / 100 ### TODO /100.0 ## not sure whether this is the way
+        pid = "{pid}" ### TODO /100.0 ## not sure whether this is the way
     shell:
         """
         echo {wildcards.pid}
+        echo {params.pid}
         vsearch -cluster_fast {input.centroids} -id 0.95 -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
         """
