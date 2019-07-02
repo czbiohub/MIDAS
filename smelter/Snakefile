@@ -50,6 +50,29 @@ if not os.path.isfile(mapfile_fp):
                 line = [genome, GENOMES[genome], 0]
             out.write('\t'.join(map(str, line)) + '\n')
 
+
+GENOMES_DICT = GENOMES
+SPECIES_ALL = list(SPECIES.keys())
+GENOMES = list(GENOMES.keys())
+
+SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
+            "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
+            "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
+            "GUT_GENOME140826"]
+
+TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056", GUT_GENOME096501, GUT_GENOME013112]
+GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
+
+
+
+rule _all_cluster:
+    input:
+        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
+
+
+"""
+Gene annotation
+"""
 rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
@@ -67,26 +90,10 @@ rule species_map_genome:
             t = "%s/%s.fna.lz4" % (dst, genome)
             shutil.copyfile(f, t)
 
-
-GENOMES_DICT = GENOMES
-SPECIES_ALL = list(SPECIES.keys())
-GENOMES = list(GENOMES.keys())
-
-SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
-            "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
-            "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
-            "GUT_GENOME140826"]
-
-TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
-GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
-
 rule _all_genomes:
     input:
         expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_0701)
 
-"""
-Gene annotation
-"""
 rule run_prokka:
     input:
         str(genomes_dir/'{genome}.fna.lz4')
@@ -109,9 +116,10 @@ rule run_prokka:
         rm {params.fna}
         """
 
-rule _all_prokka:
+rule all_pan_hmm:
     input:
-        expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome = GENOMES)
+        [expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome = GENOMES),
+        expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)]
 
 """
 Pan-genome
