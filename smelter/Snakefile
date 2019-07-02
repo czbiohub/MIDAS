@@ -9,6 +9,7 @@ from pathlib import Path
 from midas import utility
 import Bio.SeqIO
 from collections import defaultdict
+from functools import reduce
 
 
 project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
@@ -112,7 +113,7 @@ Pan-genome
 """
 
 TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
-GENOMES = [list(SPECIES[species]) for species in TEST_SPECIES]
+GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 print(GENOMES)
 
 ## This should be a faster way to do this. But let's keep it work now.
