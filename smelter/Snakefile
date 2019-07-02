@@ -354,7 +354,7 @@ rule build_marker_db:
 
 rule _all_hmm:
     input:
-        expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)
+        expand(str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.fa"), species = TEST_SPECIES)
 
 rule build_hsblastn_db:
     input:
