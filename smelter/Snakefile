@@ -55,7 +55,7 @@ rule species_map_genome:
     params:
         genomes = SPECIES["{species}"]
     run:
-        print(params[wildcards.species])
+        print(input[0])
 
 rule _all_temp:
     input:
