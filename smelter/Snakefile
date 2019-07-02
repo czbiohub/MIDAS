@@ -223,7 +223,7 @@ rule store_gene_info:
             #gene.centroid_85 = genes[gene.centroid_99].centroid_id[85]
             #gene.centroid_80 = genes[gene.centroid_99].centroid_id[80]
             #gene.centroid_75 = genes[gene.centroid_99].centroid_id[75]
-        print(genes[gene_id])
+        #print(genes[gene_id])
         ## write_gene_into
         file = utility.iopen(output[0], 'w')
         header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
