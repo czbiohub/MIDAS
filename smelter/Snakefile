@@ -125,6 +125,7 @@ rule write_genes:
         ## for each species, cat genes per genome into  pan_genoems/sp.id/genes.ffn
         ## might run into command arguments too long if do it in a Snakemake way
         genomes = SPECIES[params['sp_id']]
+        print(genomes)
         genes = {}
         stats = {}
         stats['genes'] = 0
