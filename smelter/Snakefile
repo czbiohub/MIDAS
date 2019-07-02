@@ -36,14 +36,15 @@ with open(toc_fp) as f:
         SPECIES[species_id].append(str(genome_id))
         Gpath[genome_id] = "%s/clean_set/%s" % (str(project_dir), str(species_id))
 
-with open(mapfile_fp, "w") as out:
-    out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
-    for genome in GENOMES.keys():
-        if GENOMES[genome] == genome:
-            line = [genome, GENOMES[genome], 1]
-        else:
-            line = [genome, GENOMES[genome], 0]
-        out.write('\t'.join(map(str, line)) + '\n')
+if not os.path.isfile(mapfile_fp):
+    with open(mapfile_fp, "w") as out:
+        out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
+        for genome in GENOMES.keys():
+            if GENOMES[genome] == genome:
+                line = [genome, GENOMES[genome], 1]
+            else:
+                line = [genome, GENOMES[genome], 0]
+            out.write('\t'.join(map(str, line)) + '\n')
 
 rule species_map_genome:
     input:
