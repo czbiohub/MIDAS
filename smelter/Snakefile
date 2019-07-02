@@ -9,8 +9,8 @@ from pathlib import Path
 from midas import utility
 import Bio.SeqIO
 
-## TODO: read the path from iggdb.py
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
+# todo: for now I still need the repgenomes_clean otherwise I need to map between the repgenomes/filename to genome_id
 repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
 temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
@@ -18,20 +18,10 @@ mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 
 GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
 
-prokka_done = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/prokka_done_samples"
-to_exclude = []
-with open(prokka_done) as f:
-    for line in f:
-        to_exclude.append(line.rstrip('\n').split('\t')[0])
-
-to_keep = [g for g in GENOMES if g not in to_exclude]
-GENOMES = to_keep
-print(len(GENOMES))
-
 ## TO use IGGdb
 from iggdb import IGGdb
-project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/metadata_5000_20190628")
-iggdb = IGGdb(str(project_dir/"species_info.tsv"))
+project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0")
+iggdb = IGGdb(str(project_dir/"meatadata"/"species_info.tsv"))
 REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
 #GENOMES = REP_GENOMES
 
@@ -223,7 +213,7 @@ rule build_hsblastn_db:
     output:
         str(project_dir/"marker_genes"/"phyeco.fa.sa")
     shell:
-        "hs-blastn {input}"
+        "hs-blastn index {input}"
 
 
 """
