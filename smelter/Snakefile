@@ -318,7 +318,7 @@ def parse_mapping_file(mapfile):
     infile = utility.iopen(mapfile)
     fields = next(infile).rstrip('\n').split('\t')
     for line in infile:
-        values = line.rstrip('\t').split('\t')
+        values = line.rstrip('\n').split('\t')
         record = dict([(f,v) for f, v in zip(fields, values)])
         yield record
 
