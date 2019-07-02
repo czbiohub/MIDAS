@@ -253,8 +253,7 @@ rule store_gene_info:
 
 rule _all_test:
     input:
-        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES),
-        expand(str(pangenomes_dir/"{species}"/"centroids.99.ffn"), species = TEST_SPECIES)]
+        expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
 
 
 """
