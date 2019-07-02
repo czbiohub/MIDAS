@@ -60,13 +60,14 @@ SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GE
             "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
             "GUT_GENOME140826"]
 
-TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056", "GUT_GENOME096501", "GUT_GENOME013112"]
+TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056", "GUT_GENOME096501", GUT_GENOME013112]
 GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
 
 
-rule _all_cluster:
+rule all_pan_hmm:
     input:
-        expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
+        [expand(str(pangenomes_dir/"{species}"/"gene_info.txt"), species = TEST_SPECIES)
+        expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)]
 
 
 """
@@ -115,10 +116,9 @@ rule run_prokka:
         rm {params.fna}
         """
 
-rule all_pan_hmm:
+rule _all_prokka:
     input:
-        [expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome = GENOMES),
-        expand(str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)]
+        expand(str(prokka_dir/'{genome}'/'{genome}.genes'), genome = GENOMES)
 
 """
 Pan-genome
