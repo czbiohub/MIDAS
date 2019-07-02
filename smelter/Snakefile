@@ -196,7 +196,7 @@ rule store_gene_info:
         tmp_dir = str(pangenomes_dir/"{species}"/"temp"),
         out_dir = str(pangenomes_dir/"{species}")
     run:
-        genes = {}
+        genes = defaultdict(lambda: defaultdict(int))
         cluster_id = {}
         centroid_id = {}
         for pid in [99, 95, 90, 85, 80, 75]:
