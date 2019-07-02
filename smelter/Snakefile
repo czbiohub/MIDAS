@@ -49,7 +49,7 @@ Gene annotation
 print(list(SPECIES.keys())[:10])
 rule species_map_genome:
     input:
-        str(repgenome_path/"{species}"/"{species}.fa")
+        str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
         str(temp_path/"{species}"/"{species}.fna.lz4")
     run:
