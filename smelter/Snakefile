@@ -213,6 +213,7 @@ rule store_gene_info:
                 else:
                     continue
         """ store_cluster_membership: Map gene to 99% ID centroids at each clustering %ID cutoff """
+        print(genes.keys())
         for id, gene in genes.items():
             gene["centroid_99"] = gene["centroid_id_99"]
             gene["centroid_95"] = genes[ gene["centroid_99"] ]["centroid_id_95"]
