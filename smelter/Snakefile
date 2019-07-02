@@ -240,13 +240,12 @@ rule store_gene_info:
 
         """ write_gene_info """
         file = utility.iopen(output[0], 'w')
-        #header = ['gene_id', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
         header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
         file.write('\t'.join(header)+'\n')
         for gene_id in sorted(genes.keys()):
             g = genes[gene_id]
             values = [gene_id, g['genome_id'],g['gene_length'],g["centroid_99"], g["centroid_95"], g["centroid_90"], g["centroid_85"], g["centroid_80"], g["centroid_75"]]
-        file.write('\t'.join(str(_) for _ in values) + '\n')
+            file.write('\t'.join(str(_) for _ in values) + '\n')
         file.close()
 
 rule _all_test:
