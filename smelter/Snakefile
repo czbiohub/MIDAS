@@ -149,7 +149,7 @@ rule uclust_genes_99:
         genes = str(pangenomes_dir/"{species}"/"genes.ffn")
     output:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"),
-        uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.txt")
+        uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt")
     params:
         pid = 0.99
     threads: 2
@@ -164,7 +164,7 @@ rule uclust_genes:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn")
     output:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"),
-        uc = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.txt")
+        uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.{pid}.txt")
     shell:
         """
         calc(){{ awk "BEGIN {{ print "$*" }}"; }}
@@ -228,9 +228,7 @@ rule _all_test:
 
 rule write_gene_info:
     input:
-        centroids = expand(str(pangenomes_dir/"{{species}}"/"temp"/"centroids.{pid}.ffn"), pid=[99,95, 90, 85, 80, 75]),
         genomes = expand(str(prokka_dir/'{genome}'/'{genome}.ffn'), genome = GENOMES),
-        genes = str(pangenomes_dir/"{species}"/"genes.ffn")
     output:
         str(pangenomes_dir/"{species}"/"gene_info_full.txt")
     params:
@@ -254,17 +252,6 @@ rule write_gene_info:
                     gene_id = rec.id
                     genes[rec.id] = str(rec.seq).upper()
                     stats['genes'] += 1
-
-        ## write gene info =>
-        file = utility.iopen(output['info'], 'w')
-        header = ['gene_id', 'genome_id', 'gene_length', 'centroid_99', 'centroid_95', 'centroid_90', 'centroid_85', 'centroid_80', 'centroid_75']
-        file.write('\t'.join(header)+'\n')
-        for gene_id in sorted(genes.keys()):
-            g = genes[gene_id]
-            values = [g.id, g.genome_id, g.length, g.centroid_99, g.centroid_95, g.centroid_90, g.centroid_85, g.centroid_80, g.centroid_75]
-            file.write('\t'.join([str(_) for _ in values])+'\n')
-        file.close()
-
 
 rule copy_centroids:
     input:
