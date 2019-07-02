@@ -339,7 +339,7 @@ rule build_marker_db:
                 rep_genomes.append(record['species_id'])
         print(rep_genomes[:10])
         species_id = wildcards['species']
-        fna = parse_fasta(input['ffn'])
+        fna = parse_fasta(input['genes'])
         ofasta = open(output['fasta'], "w")
         oinfo = open(output['info'], "w")
         for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
