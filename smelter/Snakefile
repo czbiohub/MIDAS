@@ -11,8 +11,12 @@ import Bio.SeqIO
 from collections import defaultdict
 
 
-project_id = Path("/mnt/chunyu20TB/midas-iggdb/IGGdbv2")
-toc_fp = str(project_id/"genomes2species.tab")
+project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
+toc_fp = str(project_dir/"genomes2species.tab")
+
+mapfile_fp = str(project_dir/"mapfile")
+
+
 GENOMES = {}
 SPECIES = defaultdict(list)
 with open(toc_fp) as f:
@@ -23,6 +27,17 @@ with open(toc_fp) as f:
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
 print(len(SPECIES))
+
+
+if not os.path.isfile(mapfile_fp):
+    with open(mapfile_fp, "w") as out:
+        out.write('\t'.join([genome_id, species_id, rep_genome] + '\n')
+        for genome in GENOMES:
+            if GENOMES[genome] == genome:
+                line = [genome, GENOMES[genomes], 1]
+            else:
+                line = [genome, GENOMES[genomes], 0]
+            out.write('\t'.join(line) + '\n')
 exit(0)
 
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
@@ -32,14 +47,11 @@ temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 
-GENOMES = [f.name[:-4] for f in repgenome_path.iterdir() if f.is_file() and f.name.endswith('.fna')]
-
 ## TO use IGGdb
-from iggdb import IGGdb
-project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0")
-iggdb = IGGdb(str(project_dir/"meatadata"/"species_info.tsv"))
-REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
-#GENOMES = REP_GENOMES
+#from iggdb import IGGdb
+#project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0")
+#iggdb = IGGdb(str(project_dir/"meatadata"/"species_info.tsv"))
+#REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
 
 """
 Read species and genome info
