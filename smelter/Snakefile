@@ -337,13 +337,13 @@ rule build_marker_db:
         for record in parse_mapping_file(input['mapfile']):
             if record['rep_genome']:
                 rep_genomes.append(record['species_id'])
-        print(rep_genome[:10])
+        print(rep_genomes[:10])
         species_id = wildcards['species']
         fna = parse_fasta(input['ffn'])
         ofasta = open(output['fasta'], "w")
         oinfo = open(output['info'], "w")
         for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
-            print(h)
+            print("hi", h)
             gene = fna[h['query']].upper()
             info = [speciesid, params['genomeid'], h['query'], len(gene), h['target']]
             oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
