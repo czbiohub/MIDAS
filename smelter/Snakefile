@@ -113,7 +113,7 @@ Pan-genome
 TEST_SPECIES = ["GUT_GENOME125418"]
 GENOMES = SPECIES[TEST_SPECIES[0]]
 g = []
-for species in SPECIES:
+for species in SPECIES[:2]:
     g = g + SPECIES[species]
 print(len(g))
 ## This should be a faster way to do this. But let's keep it work now.
