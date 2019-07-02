@@ -31,7 +31,7 @@ with open(toc_fp) as f:
 
 with open(mapfile_fp, "w") as out:
     out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
-    for genome in GENOMES:
+    for genome in GENOMES.keys():
         if GENOMES[genome] == genome:
             line = [genome, GENOMES[genomes], 1]
         else:
