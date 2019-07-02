@@ -32,7 +32,7 @@ with open(toc_fp) as f:
         species_id = line.rstrip('\n').split('\t')[-1]
         GENOMES[genome_id] = str(species_id)
         SPECIES[species_id].append(str(genome_id))
-        Gpath[genome_id] = str(project_dir) + "/clean_set/%s" % str(species_id)
+        Gpath[genome_id] = "%s/clean_set/%s" % (str(project_dir), str(species_id))
 
 with open(mapfile_fp, "w") as out:
     out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
@@ -46,15 +46,20 @@ with open(mapfile_fp, "w") as out:
 """
 Gene annotation
 """
-print(list(SPECIES.keys())[:10])
 rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
     output:
         str(temp_path/"{species}"/"{species}.fna.lz4")
+    params:
+        src = str(repgenome_path/"{species}"),
+        dst = str(temp_path/"genomes")
     run:
         genomes = SPECIES[wildcards['species']]
-        print(genomes)
+        src = params['src']
+        dst = params['dst']
+        for genome in genomes:
+            print("%s/%s.fna/lz4" % (src, genome))
 
 rule _all_temp:
     input:
