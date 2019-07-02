@@ -65,15 +65,19 @@ rule species_map_genome:
             t = "%s/%s.fna.lz4" % (dst, genome)
             shutil.copyfile(f, t)
 
+
+SPECIES_ALL = list(SPECIES.keys())
 SPECIES_0701 = ["GUT_GENOME147854","GUT_GENOME001120","GUT_GENOME096063","GUT_GENOME096203", \
             "GUT_GENOME147678", "GUT_GENOME001115","GUT_GENOME095967","GUT_GENOME000152",\
             "GUT_GENOME095021", "GUT_GENOME000092","GUT_GENOME140074","GUT_GENOME140808",
             "GUT_GENOME140826"]
 
+TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
+GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
+
 rule _all_genomes:
     input:
         expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_0701)
-        #species = list(SPECIES.keys()))
 
 GENOMES = list(GENOMES.keys())
 
@@ -112,10 +116,6 @@ Pan-genome
 - pangeomes/{species}/centroids.ff: gene sequences from 99%% identity gene clusters
 - pangeomes/{species}/gene_info.txt: information for all genes from genes.ffn
 """
-
-TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
-GENOMES = reduce(concat, [list(SPECIES[species]) for species in TEST_SPECIES])
-print(GENOMES)
 
 ## This should be a faster way to do this. But let's keep it work now.
 ## might run into command arguments too long if do it in a Snakemake way
@@ -168,6 +168,8 @@ rule uclust_genes:
     output:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.{pid}.txt")
+    threads:
+        4
     shell:
         """
         calc(){{ awk "BEGIN {{ print "$*" }}"; }}
@@ -179,7 +181,6 @@ rule uclust_genes:
 rule _all_cluster:
     input:
         expand(str(pangenomes_dir/"{species}"/"temp"/"centroids.{pid}.ffn"), pid=[95, 90, 85, 80, 75], species = TEST_SPECIES)
-
 
 def parse_uclust(inpath):
     """ Yield formated records from UCLUST outputfile """
@@ -335,6 +336,7 @@ rule build_marker_db:
     run:
         rep_genomes = []
         for record in parse_mapping_file(input['mapfile']):
+            print(record)
             if record['rep_genome']:
                 rep_genomes.append(record['species_id'])
         print("rep", rep_genomes[:10])
