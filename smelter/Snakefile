@@ -10,6 +10,7 @@ from midas import utility
 import Bio.SeqIO
 
 # make this work for IGGdb 2.0
+# testing for agigate
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
 # todo: for now I still need the repgenomes_clean otherwise I need to map between the repgenomes/filename to genome_id
 repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
