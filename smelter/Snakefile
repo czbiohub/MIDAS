@@ -15,10 +15,12 @@ project_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v2.0.0")
 toc_fp = str(project_dir/"genomes2species.tab")
 
 mapfile_fp = str(project_dir/"mapfile")
-
+temp_fp = str(project_dir/"temp")
+repgenome_path = str(project_dir/"clean_set")
 
 GENOMES = {}
 SPECIES = defaultdict(list)
+Gpath = {}
 with open(toc_fp) as f:
     next(f)
     for line in f:
@@ -26,8 +28,9 @@ with open(toc_fp) as f:
         species_id = line.rstrip('\n').split('\t')[-1]
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
-
-
+        Gpath[genome_id] = str(project_dir) + "/clean_set/GUT_GENOME%s" % (species_id)
+print(GENOMES[genome_id])
+exit(0)
 
 with open(mapfile_fp, "w") as out:
     out.write('\t'.join(["genome_id", "species_id", "rep_genome"]) + '\n')
@@ -39,10 +42,6 @@ with open(mapfile_fp, "w") as out:
         out.write('\t'.join(map(str, line)) + '\n')
 
 
-#repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
-# todo: for now I still need the repgenomes_clean otherwise I need to map between the repgenomes/filename to genome_id
-repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_clean")
-temp_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/temp")
 prokka_dir = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes_prokka")
 mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 
@@ -53,52 +52,19 @@ mapfile = "/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/mapfile"
 #REP_GENOMES = [s['species_alt_id'] for s in iggdb.species_info]
 
 """
-Read species and genome info
+rule test_layout:
+    input:
+        str(project_dir/"clean_set"/"{species}"/)
+    output:
+        str()
+    params:
+        genomes = SPECIES["{species}"]
+
+    shell:
+        """
+        cat {params.genomes}
+        """
 """
-
-"""
-def parse_mapping_file(mapfile):
-    infile = utility.iopen(mapfile)
-    fields = next(infile).rstrip('\n').split('\t')
-    for line in infile:
-        values = line.rstrip('\t').split('\t')
-        record = dict([(f,v) for f, v in zip(fields, values)])
-        yield record
-
-def read_species(mapfile):
-    species = {}
-    for record in parse_mapping_file(mapfile):
-        species_id = record['species_id']
-        genome_id = record['genome_id']
-        # fetch species
-        sp = species[species_id] if species_id in species else Species(species_id)
-        # update genomes
-        if len(sp.genomes) < args['max_genomes']:
-            sp.genomes[genome_id] = Genome(genome_id, args['indir'])
-            if record['rep_genome'] == '1':
-                sp.rep_genome = genome_id
-                sp.genomes[genome_id].is_rep = True
-            else:
-                sp.genomes[genome_id].is_rep = False
-                # store species
-        if len(species) < args['max_species']:
-            species[species_id] = sp
-        # update # of genomes
-        for sp in species.values():
-            sp.ngenomes = len(sp.genomes)
-            # make sure at least 1 rep genome/species
-            if sp.rep_genome is None:
-                sp.rep_genome = sp.genomes.keys()[0]
-        return list(species.values())
-
-def read_genomes(species):
-    genomes = sum([list(sp.genomes.values()) for sp in species], [])
-    return genomes
-
-Species = read_species(mapfile)
-Genomes = read_genomes(Species)
-"""
-
 """
 Gene annotation
 """
