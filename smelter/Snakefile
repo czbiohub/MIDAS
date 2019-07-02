@@ -28,7 +28,7 @@ with open(toc_fp) as f:
         species_id = line.rstrip('\n').split('\t')[-1]
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
-        Gpath[genome_id] = str(project_dir) + "/clean_set/GUT_GENOME%s" % (species_id)
+        Gpath[genome_id] = str(project_dir) + "/clean_set/GUT_GENOME%s" % str(species_id)
 print(Gpath[genome_id])
 exit(0)
 
