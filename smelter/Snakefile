@@ -22,10 +22,8 @@ with open(toc_fp) as f:
         species_id = line.rstrip('\n').split('\t')[-1]
         GENOMES[genome_id] = species_id
         SPECIES[species_id].append(genome_id)
-print(GENOMES['GUT_GENOME008844'])
+print(len(SPECIES))
 exit(0)
-
-
 
 #repgenome_path = Path("/mnt/chunyu20TB/midas-iggdb/IGGdb/v1.0.0/repgenomes")
 # todo: for now I still need the repgenomes_clean otherwise I need to map between the repgenomes/filename to genome_id
