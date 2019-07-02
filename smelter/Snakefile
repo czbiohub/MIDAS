@@ -18,7 +18,7 @@ mapfile_fp = str(project_dir/"mapfile")
 
 temp_path = Path(str(project_dir/"temp"))
 repgenome_path = Path(str(project_dir/"clean_set"))
-prokka_path = Path(str(project_dir/"prokka"))
+prokka_dir = Path(str(project_dir/"prokka"))
 
 
 GENOMES = {}
