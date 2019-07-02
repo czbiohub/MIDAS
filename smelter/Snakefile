@@ -344,31 +344,12 @@ rule build_marker_db:
                 gene = ffn[h['query']].upper()
                 info = [species_id, genome_id, h['query'], len(gene), h['target']]
                 oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
-                if line[2]:
+                if genome_id in list(SPECIES.keys()):
                     ofasta.write('>%s\n%s\n' % (h['query'], gene))
-
-
-rep_genomes = []
-for record in parse_mapping_file(input['mapfile']):
-    if int(record['rep_genome']) == 1:
-        rep_genomes.append(record['species_id'])
-print("rep", rep_genomes[:10])
-    run:
-        species_id =
-        fna = parse_fasta(input['genes'])
-
-            for h in find_hits(input['hmm_path'], params['max_evalue'], params['min_cov']):
-                genome_id = h['query'].rsplit("_", 1)[0] ## FULLY dependent on the IGGdb+ prokka gene format
-                geneseq = fna[h['query']].upper()
-                info = [species_id, genome_id, h['query'], len(geneseq), h['target']]
-                oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
-                ## if genome.is_rep
-                if genome_id in rep_genomes:
-
 
 rule _all_hmm:
     input:
-        expand(str(project_dir/"marker_genes"/"temp"/"{species}.phyeco.fa"), species = TEST_SPECIES)
+        expand(fasta = str(project_dir/"marker_genes"/"temp"/"{genome}.phyeco.fa"), genome = GENOMES)
 
 rule build_hsblastn_db:
     input:
