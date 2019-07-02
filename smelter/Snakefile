@@ -349,7 +349,7 @@ rule build_marker_db:
                 oinfo.write('\t'.join([str(_) for _ in info]) + '\n')
                 ## if genome.is_rep
                 if genome_id in rep_genomes:
-                    ofasta.write('>' + h['query'] + '\n' + gene+'\n')
+                    ofasta.write('>%s\n%s\n' % (h['query'], geneseq))
 
 rule _all_hmm:
     input:
