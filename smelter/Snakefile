@@ -73,7 +73,7 @@ rule _all_genomes:
         expand(str(project_dir/"genomes"/"{species}.fna.lz4"), species = SPECIES_0701)
         #species = list(SPECIES.keys()))
 
-GENOMES = list(GENOMES.keys())[:20]
+GENOMES = list(GENOMES.keys())
 
 """
 Gene annotation
@@ -111,8 +111,9 @@ Pan-genome
 - pangeomes/{species}/gene_info.txt: information for all genes from genes.ffn
 """
 
-TEST_SPECIES = ["GUT_GENOME125418"]
-GENOMES = SPECIES[TEST_SPECIES[0]]
+TEST_SPECIES = ["GUT_GENOME125418", "GUT_GENOME011056"]
+GENOMES = [SPECIES[species] for species in TEST_SPECIES]
+print(len(GENOMES))
 
 ## This should be a faster way to do this. But let's keep it work now.
 rule write_genes:
@@ -151,15 +152,12 @@ rule uclust_genes_99:
         centroids = str(pangenomes_dir/"{species}"/"temp"/"centroids.99.ffn"),
         uc = str(pangenomes_dir/"{species}"/"temp"/"uclust.99.txt")
     params:
-        pid = 0.99,
-        centroids = str(pangenomes_dir/"{species}"/"centroids.99.ffn")
-    threads: 2
+        pid = 0.99
+    threads: 1
     shell:
         """
         vsearch -cluster_fast {input.genes} -id {params.pid} -threads {threads} \
                 -centroids {output.centroids} -uc {output.uc}
-
-        cp {output.centroids} {params.centroids}
         """
 
 rule uclust_genes:
@@ -250,6 +248,14 @@ rule store_gene_info:
             values = [gene_id, g['genome_id'],g['gene_length'],g["centroid_99"], g["centroid_95"], g["centroid_90"], g["centroid_85"], g["centroid_80"], g["centroid_75"]]
             file.write('\t'.join(str(_) for _ in values) + '\n')
         file.close()
+
+rule copy_centroids:
+    input:
+        "pan_genomes/{species}/temp/centroids.99.ffn"
+    output:
+        "pan_genomes/{species}/centroids.ffn",
+    shell:
+        "cp {input} {output}"
 
 rule _all_test:
     input:
