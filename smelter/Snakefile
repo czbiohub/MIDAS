@@ -45,7 +45,6 @@ with open(mapfile_fp, "w") as out:
 """
 Gene annotation
 """
-print(SPECIES.keys()[:10])
 rule species_map_genome:
     input:
         str(repgenome_path/"{species}"/"{species}.fna.lz4")
@@ -58,4 +57,4 @@ rule species_map_genome:
 
 rule _all_temp:
     input:
-        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), species = SPECIES.keys())
+        expand(str(temp_path/"{species}"/"{species}.fna.lz4"), species = list(SPECIES.keys()))
