@@ -334,7 +334,7 @@ rule build_marker_db:
         min_cov = 0.00
     run:
         rep_genomes = []
-        for record in parse_mapping_file(mapfile):
+        for record in parse_mapping_file(input['mapfile']):
             if record['rep_genome']:
                 rep_genomes.append(record['species_id'])
         print(rep_genome[:10])
