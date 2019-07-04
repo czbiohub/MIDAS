@@ -92,19 +92,20 @@ def tsv_rows(path):
 # Credit:  github.com/chanzuckerberg/idseq-bench
 class ProgressTracker:  # pylint: disable=too-few-public-methods
 
-    def __init__(self, target):
+    def __init__(self, target, update_interval=30):
         self.target = target
         self.current = 0
         self.t_start = time.time()
         self.t_last_print = 0
         self.t_elapsed = 0
         self.t_remaining = None
+        self.update_interval = update_interval
 
     def advance(self, amount):
         PESSIMISM = 1.25
         self.current += amount
         now = time.time()
-        if amount == 0 or now - self.t_last_print > 30:  # update every 30 seconds or when forced with 0 amount
+        if self.current > 0 and (amount == 0 or now - self.t_last_print > self.update_interval):  # update every 30 seconds or when forced with 0 amount
             self.t_last_print = now
             t_elapsed = now - self.t_start
             t_remaining = (t_elapsed / self.current) * self.target - t_elapsed
