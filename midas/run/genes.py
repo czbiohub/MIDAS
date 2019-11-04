@@ -35,8 +35,9 @@ class Species:
 def initialize_species(args):
     species = {}
     splist = '%s/snps/species.txt' % args['outdir']
-    args['build_db'] = False
-    if args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
+    #args['build_db'] = False
+    ## cz: to avoid generate the SRR10029237/results/snps/species.txt
+    if False: #args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
         from midas.run.species import select_species
         with open(splist, 'w') as outfile:
             for id in select_species(args):
@@ -118,9 +119,8 @@ def build_pangenome_db(args, species):
     command += '%s/genes/temp/pangenomes ' % args['outdir']
     args['log'].write('command: '+command+'\n')
     print(command)
-    #process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     utility.check_exit_code(process, command)
-    exit(0)
 
 def pangenome_align(args):
     """ Use Bowtie2 to map reads to all specified genome species """
@@ -155,7 +155,6 @@ def pangenome_align(args):
     print("  checking bamfile integrity")
     print("bampath:=> ", bampath)
     utility.check_bamfile(args, bampath)
-    exit(0)
 
 def pangenome_coverage(args, species, genes):
     """ Compute coverage of pangenome for species_id and write results to disk """
@@ -279,7 +278,7 @@ def run_pipeline(args):
     print("  %s Gb maximum memory" % utility.max_mem_usage())
 
     # Build pangenome database for selected species
-    if args['build_db']:
+    if True: #args['build_db']:
         print("\nBuilding pangenome database")
         args['log'].write("\nBuilding pangenome database\n")
         start = time()
