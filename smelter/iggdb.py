@@ -33,7 +33,6 @@ class IGGdb:
             random_index = random.randrange(0, len(self.species_info))
             tsprint(json.dumps(self.species_info[random_index], indent=4))
         self.species = {s['species_id']: s for s in self.species_info}
-        print("IGGdb: self species", self.species)
         self.genomes = {g['genome_id']: g for g in self.genome_info}
         for s in self.species_info:
             genome_id = s['representative_genome']

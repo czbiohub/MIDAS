@@ -26,9 +26,6 @@ class Species:
     # TODO:  centroids.ffn => centroids.fa
     # TODO:  create gene_info.txt
     def paths(self, file):
-        #if file == "centroids.ffn":
-        #    file = "centroids.fa"
-        #assert file != "gene_info.txt", "Not yet generated."
         return f"{self.pangenome_path}/{file}"
 
 
@@ -76,7 +73,6 @@ def initialize_genes(args, species):
             sp.pangenome_size += 1
         file.close()
     # fetch marker_id
-    #path = '%s/metadata/fake_marker_genes/phyeco_fake.map' % args['db']
     path = '%s/marker_genes/phyeco.map' % args['db']
     file = utility.iopen(path)
     reader = csv.DictReader(file, delimiter='\t')
@@ -106,24 +102,22 @@ def build_pangenome_db(args, species):
     pangenome_fasta.close()
     pangenome_map.close()
     # print out database stats
-    print("  total species: %s" % db_stats['species'])
-    print("  total genes: %s" % db_stats['total_seqs'])
-    print("  total base-pairs: %s" % db_stats['total_length'])
+    print("Build_pangenome_db:  total species: %s" % db_stats['species'])
+    print("Build_pangenome_db:  total genes: %s" % db_stats['total_seqs'])
+    print("Build_pangenome_db:  total base-pairs: %s" % db_stats['total_length'])
     # bowtie2 database
-    args['bowtie2-build'] = "bowtie2-build"
+    # TODO: if bowtie2-build command not working, then need to give explicit errors
     command = '%s ' % args['bowtie2-build']
     command += '--threads %s ' % args['threads']
     command += '%s/genes/temp/pangenomes.fa ' % args['outdir']
     command += '%s/genes/temp/pangenomes ' % args['outdir']
     args['log'].write('command: '+command+'\n')
-    print(command)
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     utility.check_exit_code(process, command)
 
 def pangenome_align(args):
     """ Use Bowtie2 to map reads to all specified genome species """
     # Bowtie2
-    args['bowtie2'] = "bowtie2"
     command = '%s --no-unal ' % args['bowtie2']
     command += '-x %s ' % '/'.join([args['outdir'], 'genes/temp/pangenomes']) # index
     if args['max_reads']: command += '-u %s ' % args['max_reads'] # max num of reads
@@ -138,7 +132,6 @@ def pangenome_align(args):
         command += '--interleaved %s ' % args['m1']
     else: # -1 contains unpaired reads
         command += '-U %s ' % args['m1']
-    print("pangenome_align", command)
     # Output unsorted bam
     bampath = '/'.join([args['outdir'], 'genes/temp/pangenomes.bam'])
     command += '| %s view ' % args['samtools']
@@ -149,9 +142,8 @@ def pangenome_align(args):
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Check for errors
     utility.check_exit_code(process, command)
-    print("  finished aligning")
-    print("  checking bamfile integrity")
-    print("bampath:=> ", bampath)
+    print("Pangenome_align:  finished aligning")
+    print("Pangenome_align:  checking bamfile integrity")
     utility.check_bamfile(args, bampath)
 
 def pangenome_coverage(args, species, genes):
@@ -198,8 +190,8 @@ def count_mapped_bp(args, species, genes):
             gene.mapped_reads += 1
             gene.depth += len(aln.query_alignment_sequence)/float(gene.length)
 
-    print("  total aligned reads: %s" % sum([sp.aligned_reads for sp in species.values()]))
-    print("  total mapped reads: %s" % sum([sp.mapped_reads for sp in species.values()]))
+    print("Pangenome count_mapped_bp:  total aligned reads: %s" % sum([sp.aligned_reads for sp in species.values()]))
+    print("Pangenome count_mapped_bp:  total mapped reads: %s" % sum([sp.mapped_reads for sp in species.values()]))
 
     # loop over genes, sum values per species
     for gene in genes.values():
@@ -276,12 +268,11 @@ def run_pipeline(args):
     print("  %s Gb maximum memory" % utility.max_mem_usage())
 
     # Build pangenome database for selected species
-    if True: #args['build_db']:
+    if args['build_db']:
         print("\nBuilding pangenome database")
         args['log'].write("\nBuilding pangenome database\n")
         start = time()
         build_pangenome_db(args, species)
-        print("here")
         print("  %s minutes" % round((time() - start)/60, 2) )
         print("  %s Gb maximum memory" % utility.max_mem_usage())
 

@@ -254,7 +254,7 @@ By default, the MIDAS_DB environmental variable is used""")
 	db.add_argument('--species_cov', type=float, dest='species_cov', metavar='FLOAT', help='Include species with >X coverage (3.0)')
 	db.add_argument('--species_topn', type=int, dest='species_topn', metavar='INT', help='Include top N most abundant species')
 	db.add_argument('--species_id', type=str, dest='species_id', metavar='CHAR', help='Include specified species. Separate ids with a comma')
-	db.add_argument('--species_id_file', type=str, dest='species_id_file', metavar='CHAR', help='Include species from specified file, one species per line.')	
+	db.add_argument('--species_id_file', type=str, dest='species_id_file', metavar='CHAR', help='Include species from specified file, one species per line.')
 	db.add_argument('--all_species_in_db', default=False, action='store_true', dest='all_species_in_db', help='Include every species in DB, regardless of species abundance in sample.')
 	align = parser.add_argument_group('Read alignment options (if using --align)')
 	align.add_argument('-1', type=str, dest='m1', required=True,
