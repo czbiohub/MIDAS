@@ -37,8 +37,10 @@ class Contig:
 		self.id = id
 
 def initialize_species(args):
+	#print("snps.py, args", args )
 	species = {}
 	splist = '%s/snps/species.txt' % args['outdir']
+	print("snps.py: splist", splist)
 	if args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
 		from midas.run.species import select_species
 		with open(splist, 'w') as outfile:
