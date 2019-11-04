@@ -114,10 +114,16 @@ def add_executables(args):
 	src_dir = os.path.dirname(os.path.abspath(__file__))
 	main_dir = os.path.dirname(src_dir)
 	args['stream_seqs'] = '/'.join([src_dir, 'run', 'stream_seqs.py'])
-	args['hs-blastn'] = '/'.join([main_dir, 'bin', platform.system(), 'hs-blastn'])
-	args['bowtie2-build'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2-build'])
-	args['bowtie2'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2'])
-	args['samtools'] = '/'.join([main_dir, 'bin', platform.system(), 'samtools'])
+	#args['hs-blastn'] = '/'.join([main_dir, 'bin', platform.system(), 'hs-blastn'])
+	#args['bowtie2-build'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2-build'])
+	#args['bowtie2'] = '/'.join([main_dir, 'bin', platform.system(), 'bowtie2'])
+	#args['samtools'] = '/'.join([main_dir, 'bin', platform.system(), 'samtools'])
+	CONDA_PREFIX = os.getenv("CONDA_PREFIX")
+	args['hs-blastn'] = '/'.join([CONDA_PREFIX, 'bin', 'hs-blastn'])
+	args['bowtie2-build'] = '/'.join([CONDA_PREFIX, 'bin', 'bowtie2-build'])
+	args['bowtie2'] = '/'.join([CONDA_PREFIX, 'bin', 'bowtie2'])
+	args['samtools'] = '/'.join([CONDA_PREFIX, 'bin', 'samtools'])
+
 
 	for arg in ['hs-blastn', 'stream_seqs', 'bowtie2-build', 'bowtie2', 'samtools']:
 		if not os.path.isfile(args[arg]):

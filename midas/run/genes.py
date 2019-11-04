@@ -35,9 +35,7 @@ class Species:
 def initialize_species(args):
     species = {}
     splist = '%s/snps/species.txt' % args['outdir']
-    #args['build_db'] = False
-    ## cz: to avoid generate the SRR10029237/results/snps/species.txt
-    if False: #args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
+    if args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
         from midas.run.species import select_species
         with open(splist, 'w') as outfile:
             for id in select_species(args):
