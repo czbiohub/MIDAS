@@ -28,6 +28,7 @@ class Species:
 		self.mean_coverage = 0
 
 	def fetch_paths(self, iggdb):
+		print("fetch_path:", self.id)
 		self.paths['fna'] = iggdb.get_species(species_id=self.id)['repgenome_path']
 
 class Contig:
@@ -251,7 +252,7 @@ def pysam_pileup(args, species, contigs):
 
 	global global_contigs
 	global_contigs = contigs
-	
+
 	tsprint("Read contigs")
 
 	mp = multiprocessing.Pool(int(args['threads']))
