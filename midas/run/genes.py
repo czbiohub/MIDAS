@@ -26,15 +26,16 @@ class Species:
     # TODO:  centroids.ffn => centroids.fa
     # TODO:  create gene_info.txt
     def paths(self, file):
-        if file == "centroids.ffn":
-            file = "centroids.fa"
-        assert file != "gene_info.txt", "Not yet generated."
+        #if file == "centroids.ffn":
+        #    file = "centroids.fa"
+        #assert file != "gene_info.txt", "Not yet generated."
         return f"{self.pangenome_path}/{file}"
 
 
 def initialize_species(args):
     species = {}
     splist = '%s/snps/species.txt' % args['outdir']
+    args['build_db'] = False
     if args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
         from midas.run.species import select_species
         with open(splist, 'w') as outfile:
@@ -76,7 +77,8 @@ def initialize_genes(args, species):
             sp.pangenome_size += 1
         file.close()
     # fetch marker_id
-    path = '%s/metadata/fake_marker_genes/phyeco_fake.map' % args['db']
+    #path = '%s/metadata/fake_marker_genes/phyeco_fake.map' % args['db']
+    path = '%s/marker_genes/phyeco.map' % args['db']
     file = utility.iopen(path)
     reader = csv.DictReader(file, delimiter='\t')
     for r in reader:
@@ -109,17 +111,21 @@ def build_pangenome_db(args, species):
     print("  total genes: %s" % db_stats['total_seqs'])
     print("  total base-pairs: %s" % db_stats['total_length'])
     # bowtie2 database
+    args['bowtie2-build'] = "bowtie2-build"
     command = '%s ' % args['bowtie2-build']
     command += '--threads %s ' % args['threads']
     command += '%s/genes/temp/pangenomes.fa ' % args['outdir']
     command += '%s/genes/temp/pangenomes ' % args['outdir']
     args['log'].write('command: '+command+'\n')
-    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print(command)
+    #process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     utility.check_exit_code(process, command)
+    exit(0)
 
 def pangenome_align(args):
     """ Use Bowtie2 to map reads to all specified genome species """
     # Bowtie2
+    args['bowtie2'] = "bowtie2"
     command = '%s --no-unal ' % args['bowtie2']
     command += '-x %s ' % '/'.join([args['outdir'], 'genes/temp/pangenomes']) # index
     if args['max_reads']: command += '-u %s ' % args['max_reads'] # max num of reads
@@ -134,6 +140,7 @@ def pangenome_align(args):
         command += '--interleaved %s ' % args['m1']
     else: # -1 contains unpaired reads
         command += '-U %s ' % args['m1']
+    print("pangenome_align", command)
     # Output unsorted bam
     bampath = '/'.join([args['outdir'], 'genes/temp/pangenomes.bam'])
     command += '| %s view ' % args['samtools']
@@ -146,7 +153,9 @@ def pangenome_align(args):
     utility.check_exit_code(process, command)
     print("  finished aligning")
     print("  checking bamfile integrity")
+    print("bampath:=> ", bampath)
     utility.check_bamfile(args, bampath)
+    exit(0)
 
 def pangenome_coverage(args, species, genes):
     """ Compute coverage of pangenome for species_id and write results to disk """
@@ -275,6 +284,7 @@ def run_pipeline(args):
         args['log'].write("\nBuilding pangenome database\n")
         start = time()
         build_pangenome_db(args, species)
+        print("here")
         print("  %s minutes" % round((time() - start)/60, 2) )
         print("  %s Gb maximum memory" % utility.max_mem_usage())
 

@@ -28,7 +28,6 @@ class Species:
 		self.mean_coverage = 0
 
 	def fetch_paths(self, iggdb):
-		print("fetch_path:", self.id)
 		self.paths['fna'] = iggdb.get_species(species_id=self.id)['repgenome_path']
 
 class Contig:
@@ -37,10 +36,9 @@ class Contig:
 		self.id = id
 
 def initialize_species(args):
-	#print("snps.py, args", args )
 	species = {}
 	splist = '%s/snps/species.txt' % args['outdir']
-	print("snps.py: splist", splist)
+	args['build_db'] = False
 	if args['build_db'] or (args['all_species_in_db'] and not os.path.isfile(splist)):
 		from midas.run.species import select_species
 		with open(splist, 'w') as outfile:
@@ -52,6 +50,7 @@ def initialize_species(args):
 			id = line.rstrip()
 			species[id] = Species(id)
 	iggdb = args['iggdb']
+	print("initialize_species: iggdb", iggdb)
 	for sp in species.values():
 		sp.fetch_paths(iggdb)
 	return species

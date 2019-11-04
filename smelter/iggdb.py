@@ -39,7 +39,7 @@ class IGGdb:
             genome_id = s['representative_genome']
             g = self.genomes[genome_id]
             #s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
-            s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna.lz4"
+            s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna"
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
 
 
