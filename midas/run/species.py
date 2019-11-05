@@ -13,6 +13,7 @@ from smelter.utilities import tsprint
 
 
 def read_annotations(args):
+	# this should be a function insides IGGdb
 	info = {}
 	iggdb = args['iggdb']
 	for s in iggdb.species_info:
