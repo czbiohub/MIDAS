@@ -203,7 +203,7 @@ def select_species(args):
 		## IGGsearch results
 		species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
 		print("IGGsearch:", species_abundance)
-		species_abundance = read_abundance('%s/species/species_profile.tsv' % args['outdir'])
+		species_abundance = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 		print("HSBLAST:", species_abundance)
 		# user specifed a coverage threshold
 		if args['species_cov']:
@@ -293,7 +293,7 @@ def run_pipeline(args):
 
 	species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
 	print("IGGsearch:", species_abundance)
-	species_abundance = read_abundance('%s/species/species_profile.tsv' % args['outdir'])
+	species_abundance = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 	print("HSBLAST:", species_abundance)
 
 	# write results
