@@ -214,8 +214,9 @@ def select_species(args):
 	species_sets = {}
 	# read in species abundance if necessary
 	if any([args['species_topn'], args['species_cov']]) and not args['all_species_in_db']:
-		## IGGsearch results
+		## IGGsearch results format
 		#species_abundance = read_abundance_iggsearch('%s/iggsearch/species_profile.tsv' % args['outdir'])
+		## HS-BLASTN results format
 		species_abundance = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 		# user specifed a coverage threshold
 		if args['species_cov']:
@@ -280,7 +281,7 @@ def run_pipeline(args):
 	start = time()
 	print("\nAligning reads to marker-genes database")
 	args['log'].write("\nAligning reads to marker-genes database\n")
-	#map_reads_hsblast(args)
+	map_reads_hsblast(args)
 	print("  %s minutes" % round((time() - start)/60, 2))
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
 
@@ -302,13 +303,6 @@ def run_pipeline(args):
 	species_abundance = normalize_counts(species_alns, total_gene_length)
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
-
-	nah = read_abundance_iggsearch('%s/iggsearch/species_profile.tsv' % args['outdir'])
-	print("IGGsearch:", nah)
-	nah2 = read_abundance('%s/species/species_profile.txt' % args['outdir'])
-	for nn in nah2.values():
-		if float(nn['relative_abundance']) > 0:
-			print(nn)
 
 	# write results
 	write_abundance(args['outdir'], species_abundance, species_info)
