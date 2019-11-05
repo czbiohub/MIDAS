@@ -22,9 +22,9 @@ def read_annotations(args):
 	info = {}
 	species_info = iggdb.species_info
 	species_ids = [sp['species_id'] for sp in species_info]
-	for id in species_ids:
+	for id in species_ids[:10]:
 		info[id] = iggdb.get_species(species_id=id)
-	print("INFO2:", info[:10])
+	print("INFO2:", info)
 	return info
 
 def read_marker_info(args):
