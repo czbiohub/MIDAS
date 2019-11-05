@@ -8,6 +8,9 @@ import sys, os, subprocess, Bio.SeqIO
 from time import time
 from midas import utility
 from operator import itemgetter
+from smelter.iggdb import IGGdb
+from smelter.utilities import tsprint
+
 
 def read_annotations(args):
 	info = {}
