@@ -15,7 +15,6 @@ from smelter.utilities import tsprint
 def read_annotations(args):
 	info = {}
 	iggdb = args['iggdb']
-	parse_table(tsv_rows(iggdb_toc_species))
 	species_info = iggdb.species_info
 	species_ids = [sp['species_id'] for sp in species_info]
 	print("species_info:", species_info)
