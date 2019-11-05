@@ -180,7 +180,7 @@ def write_abundance(outdir, species_abundance, annotations):
 		record = [species_id, values['count'], values['cov'], values['rel_abun']]
 		outfile.write('\t'.join([str(x) for x in record])+'\n')
 
-def read_abundance(inpath):
+def read_abundance_iggsearch(inpath):
 	""" Parse species abundance file """
 	if not os.path.isfile(inpath):
 		sys.exit("\nCould not locate species profile: %s\nTry rerunning with run_midas.py species" % inpath)
@@ -194,6 +194,20 @@ def read_abundance(inpath):
 		abun[rec['species_id']] = rec
 	return abun
 
+def read_abundance(inpath):
+	""" Parse species abundance file """
+	if not os.path.isfile(inpath):
+		sys.exit("\nCould not locate species profile: %s\nTry rerunning with run_midas.py species" % inpath)
+	abun = {}
+	for rec in utility.parse_file(inpath):
+		# format record
+		if 'species_id' in rec: rec['species_id'] = rec['species_id']
+		if 'total_mapped_reads' in rec: rec['count_reads'] = int(rec['count_reads'])
+		if 'avg_read_depth' in rec: rec['coverage'] = float(rec['coverage'])
+		if 'species_abund' in rec: rec['relative_abundance'] = float(rec['relative_abundance'])
+		abun[rec['species_id']] = rec
+	return abun
+
 def select_species(args):
 	""" Select genome species to map to """
 	import operator
@@ -201,10 +215,8 @@ def select_species(args):
 	# read in species abundance if necessary
 	if any([args['species_topn'], args['species_cov']]) and not args['all_species_in_db']:
 		## IGGsearch results
-		species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
-		print("IGGsearch:", species_abundance)
+		#species_abundance = read_abundance_iggsearch('%s/iggsearch/species_profile.tsv' % args['outdir'])
 		species_abundance = read_abundance('%s/species/species_profile.txt' % args['outdir'])
-		print("HSBLAST:", species_abundance)
 		# user specifed a coverage threshold
 		if args['species_cov']:
 			species_sets['species_cov'] = set([])
@@ -291,7 +303,7 @@ def run_pipeline(args):
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
 
-	nah = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
+	nah = read_abundance_iggsearch('%s/iggsearch/species_profile.tsv' % args['outdir'])
 	print("IGGsearch:", nah)
 	nah2 = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 	print("HSBLAST:", nah2)
