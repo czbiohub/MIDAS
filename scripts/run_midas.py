@@ -72,7 +72,7 @@ def print_arguments(program, args):
 def run_program(program, args):
 	""" Run program specified by user (species, genes, or snps) """
 	if program == 'species':
-		raise Exception("Species subcommand deprecated.  Run IGGsearch instead.")
+		#raise Exception("Species subcommand deprecated.  Run IGGsearch instead.")
 		from midas.run import species
 		species.run_pipeline(args)
 	elif program == 'genes':

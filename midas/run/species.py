@@ -8,16 +8,21 @@ import sys, os, subprocess, Bio.SeqIO
 from time import time
 from midas import utility
 from operator import itemgetter
+from smelter.iggdb import IGGdb
+from smelter.utilities import tsprint
+
 
 def read_annotations(args):
+	# this should be a function insides IGGdb
 	info = {}
-	inpath = '%s/species_info.txt' % args['db']
-	for r in utility.parse_file(inpath):
-		info[r['species_id']] = r
+	iggdb = args['iggdb']
+	for s in iggdb.species_info[:10]:
+		info[s['species_id']] = s
 	return info
 
 def read_marker_info(args):
 	""" Read info for marker genes from phyeco.fa """
+	## TODO: move this IGGdb
 	info = {}
 	for seq in Bio.SeqIO.parse('%s/marker_genes/phyeco.fa' % args['db'], 'fasta'):
 		info[seq.id] = None
@@ -174,7 +179,7 @@ def write_abundance(outdir, species_abundance, annotations):
 		record = [species_id, values['count'], values['cov'], values['rel_abun']]
 		outfile.write('\t'.join([str(x) for x in record])+'\n')
 
-def read_abundance(inpath):
+def read_abundance_iggsearch(inpath):
 	""" Parse species abundance file """
 	if not os.path.isfile(inpath):
 		sys.exit("\nCould not locate species profile: %s\nTry rerunning with run_midas.py species" % inpath)
@@ -188,13 +193,30 @@ def read_abundance(inpath):
 		abun[rec['species_id']] = rec
 	return abun
 
+def read_abundance(inpath):
+	""" Parse species abundance file """
+	if not os.path.isfile(inpath):
+		sys.exit("\nCould not locate species profile: %s\nTry rerunning with run_midas.py species" % inpath)
+	abun = {}
+	for rec in utility.parse_file(inpath):
+		# format record
+		if 'species_id' in rec: rec['species_id'] = rec['species_id']
+		if 'total_mapped_reads' in rec: rec['count_reads'] = int(rec['count_reads'])
+		if 'avg_read_depth' in rec: rec['coverage'] = float(rec['coverage'])
+		if 'species_abund' in rec: rec['relative_abundance'] = float(rec['relative_abundance'])
+		abun[rec['species_id']] = rec
+	return abun
+
 def select_species(args):
 	""" Select genome species to map to """
 	import operator
 	species_sets = {}
 	# read in species abundance if necessary
 	if any([args['species_topn'], args['species_cov']]) and not args['all_species_in_db']:
-		species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
+		## IGGsearch results format
+		#species_abundance = read_abundance_iggsearch('%s/iggsearch/species_profile.tsv' % args['outdir'])
+		## HS-BLASTN results format
+		species_abundance = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 		# user specifed a coverage threshold
 		if args['species_cov']:
 			species_sets['species_cov'] = set([])
@@ -242,6 +264,14 @@ def select_species(args):
 def run_pipeline(args):
 
 	""" Run entire pipeline """
+	print("\nReading reference data")
+	start = time()
+	if 'db' in args:
+		if args.get('dbtoc'):
+			args['iggdb'] = IGGdb(f"{args['dbtoc']}")
+		else:
+			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
+
 	# read info files
 	species_info = read_annotations(args)
 	marker_info = read_marker_info(args)
