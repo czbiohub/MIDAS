@@ -11,9 +11,14 @@ from operator import itemgetter
 
 def read_annotations(args):
 	info = {}
+	iggdb = args['iggdb']
+	species_info = iggdb.species_info
+	print(species_info)
 	inpath = '%s/species_info.txt' % args['db']
 	for r in utility.parse_file(inpath):
 		info[r['species_id']] = r
+	print(info)
+	exit(0)
 	return info
 
 def read_marker_info(args):
@@ -242,6 +247,14 @@ def select_species(args):
 def run_pipeline(args):
 
 	""" Run entire pipeline """
+	print("\nReading reference data")
+	start = time()
+	if 'db' in args:
+		if args.get('dbtoc'):
+			args['iggdb'] = IGGdb(f"{args['dbtoc']}")
+		else:
+			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
+
 	# read info files
 	species_info = read_annotations(args)
 	marker_info = read_marker_info(args)
