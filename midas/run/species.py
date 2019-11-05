@@ -139,7 +139,6 @@ def get_markers(args):
 
 def read_gene_lengths(args, species_info, marker_info):
 	""" Read in total gene length per species_id """
-	print("read_gene_lengths:", species_info)
 	total_gene_length = dict([(_,0) for _ in species_info])
 	for r in marker_info.values():
 		total_gene_length[r['species_id']] += int(r['gene_length'])
@@ -267,7 +266,7 @@ def run_pipeline(args):
 	start = time()
 	print("\nAligning reads to marker-genes database")
 	args['log'].write("\nAligning reads to marker-genes database\n")
-	#map_reads_hsblast(args)
+	map_reads_hsblast(args)
 	print("  %s minutes" % round((time() - start)/60, 2))
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
 
