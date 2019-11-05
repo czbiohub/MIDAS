@@ -6,7 +6,8 @@ EBSROOT=`dirname ${MIDAS}`
 export PYTHONPATH=$PYTHONPATH:${MIDAS}:${MIDAS}/smelter
 export PATH=$PATH:${MIDAS}/scripts
 #export MIDAS_DB=${EBSROOT}/IGGdb/v1.0.0
-export MIDAS_DB=${EBSROOT}/IGGdb/v2.0.0_2019_July
+#export MIDAS_DB=${EBSROOT}/IGGdb/v2.0.0_2019_July
+export MIDAS_DB=${EBSROOT}/IGGdb/v2.0.0
 
 if [ ! -d ${MIDAS_DB} ]; then
    echo "Directory ${MIDAS_DB} not found.  Please provide it, or adjust ${REALME} for your install."

@@ -201,6 +201,7 @@ def select_species(args):
 	# read in species abundance if necessary
 	if any([args['species_topn'], args['species_cov']]) and not args['all_species_in_db']:
 		species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
+		species_abundance = read_abundance('%s/species/species_profile.tsv' % args['outdir'])
 		# user specifed a coverage threshold
 		if args['species_cov']:
 			species_sets['species_cov'] = set([])
