@@ -17,7 +17,7 @@ def read_annotations(args):
 	iggdb = args['iggdb']
 	species_info = iggdb.species_info
 	print(species_info)
-	inpath = '%s/metadata/species_info.txt' % args['db']
+	inpath = '%s/metadata/species_info.tsv' % args['db']
 	for r in utility.parse_file(inpath):
 		info[r['species_id']] = r
 	print(info)
