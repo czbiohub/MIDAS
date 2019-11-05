@@ -49,6 +49,7 @@ def initialize_species(args):
 			id = line.rstrip()
 			species[id] = Species(id)
 	iggdb = args['iggdb']
+	print("initialize_species: iggdb", iggdb)
 	for sp in species.values():
 		sp.fetch_paths(iggdb)
 	return species
@@ -251,7 +252,7 @@ def pysam_pileup(args, species, contigs):
 
 	global global_contigs
 	global_contigs = contigs
-	
+
 	tsprint("Read contigs")
 
 	mp = multiprocessing.Pool(int(args['threads']))

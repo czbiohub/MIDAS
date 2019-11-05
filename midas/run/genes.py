@@ -26,9 +26,6 @@ class Species:
     # TODO:  centroids.ffn => centroids.fa
     # TODO:  create gene_info.txt
     def paths(self, file):
-        if file == "centroids.ffn":
-            file = "centroids.fa"
-        assert file != "gene_info.txt", "Not yet generated."
         return f"{self.pangenome_path}/{file}"
 
 
@@ -76,7 +73,7 @@ def initialize_genes(args, species):
             sp.pangenome_size += 1
         file.close()
     # fetch marker_id
-    path = '%s/metadata/fake_marker_genes/phyeco_fake.map' % args['db']
+    path = '%s/marker_genes/phyeco.map' % args['db']
     file = utility.iopen(path)
     reader = csv.DictReader(file, delimiter='\t')
     for r in reader:
@@ -105,10 +102,11 @@ def build_pangenome_db(args, species):
     pangenome_fasta.close()
     pangenome_map.close()
     # print out database stats
-    print("  total species: %s" % db_stats['species'])
-    print("  total genes: %s" % db_stats['total_seqs'])
-    print("  total base-pairs: %s" % db_stats['total_length'])
+    print("Build_pangenome_db:  total species: %s" % db_stats['species'])
+    print("Build_pangenome_db:  total genes: %s" % db_stats['total_seqs'])
+    print("Build_pangenome_db:  total base-pairs: %s" % db_stats['total_length'])
     # bowtie2 database
+    # TODO: if bowtie2-build command not working, then need to give explicit errors
     command = '%s ' % args['bowtie2-build']
     command += '--threads %s ' % args['threads']
     command += '%s/genes/temp/pangenomes.fa ' % args['outdir']
@@ -144,8 +142,8 @@ def pangenome_align(args):
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     # Check for errors
     utility.check_exit_code(process, command)
-    print("  finished aligning")
-    print("  checking bamfile integrity")
+    print("Pangenome_align:  finished aligning")
+    print("Pangenome_align:  checking bamfile integrity")
     utility.check_bamfile(args, bampath)
 
 def pangenome_coverage(args, species, genes):
@@ -192,8 +190,8 @@ def count_mapped_bp(args, species, genes):
             gene.mapped_reads += 1
             gene.depth += len(aln.query_alignment_sequence)/float(gene.length)
 
-    print("  total aligned reads: %s" % sum([sp.aligned_reads for sp in species.values()]))
-    print("  total mapped reads: %s" % sum([sp.mapped_reads for sp in species.values()]))
+    print("Pangenome count_mapped_bp:  total aligned reads: %s" % sum([sp.aligned_reads for sp in species.values()]))
+    print("Pangenome count_mapped_bp:  total mapped reads: %s" % sum([sp.mapped_reads for sp in species.values()]))
 
     # loop over genes, sum values per species
     for gene in genes.values():
