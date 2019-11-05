@@ -291,6 +291,11 @@ def run_pipeline(args):
 	print("  %s minutes" % round((time() - start)/60, 2) )
 	print("  %s Gb maximum memory" % utility.max_mem_usage())
 
+	species_abundance = read_abundance('%s/iggsearch/species_profile.tsv' % args['outdir'])
+	print("IGGsearch:", species_abundance)
+	species_abundance = read_abundance('%s/species/species_profile.tsv' % args['outdir'])
+	print("HSBLAST:", species_abundance)
+
 	# write results
 	write_abundance(args['outdir'], species_abundance, species_info)
 
