@@ -307,7 +307,7 @@ def run_pipeline(args):
 	print("IGGsearch:", nah)
 	nah2 = read_abundance('%s/species/species_profile.txt' % args['outdir'])
 	for nn in nah2.value():
-		if nn['relative_abundance'] > :
+		if nn['relative_abundance'] > 0:
 			print(nn)
 
 	# write results
