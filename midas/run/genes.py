@@ -72,6 +72,7 @@ def initialize_genes(args, species):
             genes[seq.id].length = len(seq.seq)
             sp.pangenome_size += 1
         file.close()
+    ## TODO: move this IGGdb
     # fetch marker_id
     path = '%s/marker_genes/phyeco.map' % args['db']
     file = utility.iopen(path)
