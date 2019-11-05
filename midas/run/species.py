@@ -143,7 +143,6 @@ def read_gene_lengths(args, species_info, marker_info):
 	total_gene_length = dict([(_,0) for _ in species_info])
 	for r in marker_info.values():
 		total_gene_length[r['species_id']] += int(r['gene_length'])
-	print("read_gene_lengths:", total_gene_length)
 	return total_gene_length
 
 def normalize_counts(species_alns, total_gene_length):
