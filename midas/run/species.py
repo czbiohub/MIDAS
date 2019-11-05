@@ -19,14 +19,9 @@ def read_annotations(args):
 	species_ids = [sp['species_id'] for sp in species_info]
 	for id in species_ids:
 		info[id] = iggdb.get_species(species_id=id)
-	print("species_info:", species_info)
-	print("info cz:", info)
-	#for r in speceis_info
-	inpath = '%s/metadata/species_info.tsv' % args['db']
-	for r in utility.parse_file(inpath):
-		info[r['species_id']] = r
-	print("info:", info)
-	exit(0)
+	#inpath = '%s/metadata/species_info.tsv' % args['db']
+	#for r in utility.parse_file(inpath):
+	#	info[r['species_id']] = r
 	return info
 
 def read_marker_info(args):
