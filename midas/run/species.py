@@ -276,6 +276,7 @@ def run_pipeline(args):
 	# read info files
 	species_info = read_annotations(args)
 	marker_info = read_marker_info(args)
+	print("marker_info")
 
 	# align reads
 	start = time()
