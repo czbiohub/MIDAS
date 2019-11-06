@@ -4,6 +4,7 @@ import time
 import json
 from os.path import isfile, isdir, dirname, abspath, basename
 from utilities import tsv_rows, parse_table, tsprint
+import subprocess
 
 
 class IGGdb:
@@ -38,7 +39,9 @@ class IGGdb:
             genome_id = s['representative_genome']
             g = self.genomes[genome_id]
             ##s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
-            s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna.lz4"
+            s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna"
+            if not os.path.isfile(s['repgenome_path']):
+                subprocess.Popen("lz4 -d %s.lz4" % s['repgenome_path'], shell=True)
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
 
 
