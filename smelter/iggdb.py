@@ -4,7 +4,7 @@ import time
 import json
 from os.path import isfile, isdir, dirname, abspath, basename
 from utilities import tsv_rows, parse_table, tsprint
-import subprocess
+import subprocess, os
 
 
 class IGGdb:
