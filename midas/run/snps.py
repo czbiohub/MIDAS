@@ -52,6 +52,7 @@ def initialize_species(args):
 	print("initialize_species: iggdb", iggdb)
 	for sp in species.values():
 		sp.fetch_paths(iggdb)
+	print(sp)
 	return species
 
 def initialize_contigs(species):
