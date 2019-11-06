@@ -41,7 +41,9 @@ class IGGdb:
             ##s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
             s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna"
             if not os.path.isfile(s['repgenome_path']):
-                subprocess.Popen("lz4 -d %s.lz4" % s['repgenome_path'], shell=True)
+                command = "lz4 -d %s.lz4" % s['repgenome_path']
+                print("start LZ4 decompress: ", command)
+                #subprocess.Popen(command, shell=True)
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
 
 
