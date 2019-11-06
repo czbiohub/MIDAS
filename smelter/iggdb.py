@@ -38,13 +38,13 @@ class IGGdb:
         for s in self.species_info:
             genome_id = s['representative_genome']
             g = self.genomes[genome_id]
-            ##s['repgenome_with_origin'] = genome_id + "." + g['repository'].lower()
             s['repgenome_path'] = f"{self.iggdb_root}/repgenomes/{genome_id}/{genome_id}.fna"
-            if not os.path.isfile(s['repgenome_path']):
+            if not isfile(s['repgenome_path']):
                 command = "lz4 -d %s.lz4" % s['repgenome_path']
                 subprocess.Popen(command, shell=True)
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
-
+            ## What does marker_genes_database looks like? What does the information organized?
+            ## How it is being used?? Does it belong to Species or Genomes?
 
     def get_species(self, species_id, default=None):
         return self.species.get(species_id, default)
