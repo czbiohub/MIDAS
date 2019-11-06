@@ -277,6 +277,11 @@ def run_pipeline(args):
 
 	# read info files
 	species_info = read_annotations(args)
+	print(species_info)
+	print("this should be the same")
+	iggdb = args['iggdb']
+	print(iggdb.species)
+	exit(0)
 	marker_info = read_marker_info(args)
 
 	# align reads
