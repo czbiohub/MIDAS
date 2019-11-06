@@ -11,15 +11,6 @@ from operator import itemgetter
 from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
 
-
-def read_annotations(args):
-	# this should be a function insides IGGdb
-	info = {}
-	iggdb = args['iggdb']
-	for s in iggdb.species_info[:10]:
-		info[s['species_id']] = s
-	return info
-
 def read_marker_info(args):
 	""" Read info for marker genes from phyeco.fa """
 	## TODO: move this IGGdb
@@ -276,12 +267,7 @@ def run_pipeline(args):
 			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
 
 	# read info files
-	species_info = read_annotations(args)
-	print(species_info)
-	print("this should be the same")
-	iggdb = args['iggdb']
-	print(iggdb.species)
-	exit(0)
+	species_info = args['iggdb'].species
 	marker_info = read_marker_info(args)
 
 	# align reads
