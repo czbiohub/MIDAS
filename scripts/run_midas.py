@@ -526,6 +526,7 @@ def check_genes(args):
 		args['species_cov'] = 3.0
 	# species selection options, but no no profile file
 	profile='%s/iggsearch/species_profile.tsv' % args['outdir']
+	print("run_midas.py:", profile)
 	if not os.path.isfile(profile):
 		if ((args['species_topn'] or args['species_cov']) and not args['all_species_in_db']) and args['build_db']:
 			sys.exit("\nError: Could not find species abundance profile: %s\n\
