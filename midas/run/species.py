@@ -141,6 +141,7 @@ def read_gene_lengths(args, species_info, marker_info):
 	total_gene_length = dict([(_,0) for _ in species_info])
 	print("read_gene_lengths:", total_gene_length)
 	for r in marker_info.values():
+		print(r)
 		total_gene_length[r['species_id']] += int(r['gene_length'])
 	return total_gene_length
 
