@@ -49,7 +49,6 @@ def initialize_species(args):
 			id = line.rstrip()
 			species[id] = Species(id)
 	iggdb = args['iggdb']
-	print("initialize_species: iggdb", iggdb)
 	for sp in species.values():
 		sp.fetch_paths(iggdb)
 		print(sp)
