@@ -526,6 +526,7 @@ def check_genes(args):
 		args['species_cov'] = 3.0
 	# species selection options, but no no profile file
 	profile='%s/iggsearch/species_profile.tsv' % args['outdir']
+	profile='%s/species/species_profile.txt' % args['outdir']
 	if not os.path.isfile(profile):
 		if ((args['species_topn'] or args['species_cov']) and not args['all_species_in_db']) and args['build_db']:
 			sys.exit("\nError: Could not find species abundance profile: %s\n\
@@ -587,7 +588,8 @@ def check_snps(args):
 	if not any([args['species_id'], args['species_topn'], args['species_cov']]):
 		args['species_cov'] = 3.0
 	# species selection options, but no no profile file
-	profile='%s/iggsearch/species_profile.tsv' % args['outdir']
+	#profile='%s/iggsearch/species_profile.tsv' % args['outdir']
+	profile='%s/species/species_profile.txt' % args['outdir']
 	if not os.path.isfile(profile):
 		if ((args['species_topn'] or args['species_cov']) and not args['all_species_in_db']) and args['build_db']:
 			sys.exit("\nError: Could not find species abundance profile: %s\n\
