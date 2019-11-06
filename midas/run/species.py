@@ -25,6 +25,7 @@ def read_marker_info(args):
 	## TODO: move this IGGdb
 	info = {}
 	for seq in Bio.SeqIO.parse('%s/marker_genes/phyeco.fa' % args['db'], 'fasta'):
+		print(seq.id)
 		info[seq.id] = None
 	for r in utility.parse_file('%s/marker_genes/phyeco.map' % args['db']):
 		if r['gene_id'] in info:
@@ -276,7 +277,6 @@ def run_pipeline(args):
 	# read info files
 	species_info = read_annotations(args)
 	marker_info = read_marker_info(args)
-	print("marker_info:", marker_info)
 
 	# align reads
 	start = time()
