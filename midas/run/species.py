@@ -139,6 +139,7 @@ def get_markers(args):
 def read_gene_lengths(args, species_info, marker_info):
 	""" Read in total gene length per species_id """
 	total_gene_length = dict([(_,0) for _ in species_info])
+	print("read_gene_lengths:", total_gene_length)
 	for r in marker_info.values():
 		total_gene_length[r['species_id']] += int(r['gene_length'])
 	return total_gene_length
@@ -275,7 +276,6 @@ def run_pipeline(args):
 	# read info files
 	species_info = read_annotations(args)
 	marker_info = read_marker_info(args)
-	print("species_info", species_info)
 
 	# align reads
 	start = time()
