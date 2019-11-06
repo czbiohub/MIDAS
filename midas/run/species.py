@@ -204,9 +204,9 @@ def read_abundance(inpath):
 	for rec in utility.parse_file(inpath):
 		# format record
 		if 'species_id' in rec: rec['species_id'] = rec['species_id']
-		if 'total_mapped_reads' in rec: rec['count_reads'] = int(rec['count_reads'])
-		if 'avg_read_depth' in rec: rec['coverage'] = float(rec['coverage'])
-		if 'species_abund' in rec: rec['relative_abundance'] = float(rec['relative_abundance'])
+		if 'count_reads' in rec: rec['count_reads'] = int(rec['count_reads'])
+		if 'coverage' in rec: rec['coverage'] = float(rec['coverage'])
+		if 'relative_abundance' in rec: rec['relative_abundance'] = float(rec['relative_abundance'])
 		abun[rec['species_id']] = rec
 	return abun
 
