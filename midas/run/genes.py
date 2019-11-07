@@ -203,6 +203,7 @@ def count_mapped_bp(args, species, genes):
 def normalize(args, species, genes):
     """ Count number of bp mapped to each marker gene """
     # compute marker depth
+    ## TOAsk: SCG why += gene.depth?
     for gene in genes.values():
         if gene.marker_id is not None:
             species[gene.species_id].markers[gene.marker_id] += gene.depth
