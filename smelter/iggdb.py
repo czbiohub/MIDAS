@@ -64,7 +64,7 @@ class IGGdb:
     def read_marker_info(self):
         """ Read info for marker genes from phyeco.fa """
         marker_info = {}
-        for seq in Bio.SeqIO.parse(self.marker_genes_fasta):
+        for seq in Bio.SeqIO.parse(self.marker_genes_fasta, 'fasta'):
             marker_info[seq.id] = None
         for m in parse_table(tsv_rows(self.marker_genes_map)):
             if m['gene_id'] in marker_info:
