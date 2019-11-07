@@ -11,14 +11,6 @@ from operator import itemgetter
 from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
 
-def read_marker_info(args):
-	info = {}
-	for seq in Bio.SeqIO.parse('%s/marker_genes/phyeco.fa' % args['db'], 'fasta'):
-		info[seq.id] = None
-	for r in utility.parse_file('%s/marker_genes/phyeco.map' % args['db']):
-		if r['gene_id'] in info:
-			info[r['gene_id']] = r
-	return info
 
 def map_reads_hsblast(args):
 	""" Use hs-blastn to map reads in fasta file to marker database """
@@ -124,9 +116,7 @@ def read_gene_lengths(args, species_info, marker_info):
 	""" Read in total gene length per species_id """
 	total_gene_length = dict([(_,0) for _ in species_info])
 	for r in marker_info.values():
-		# Read in all the marker_genes map for each genome.
-		# Move to Genome.get_marker_genes()
-		# temp fix: marker_genes_all AND pangenome_test
+		# Read in all the marker_genes map for each genome. Move to Genome.get_marker_genes()
 		if r['species_id'] in total_gene_length.keys():
 			total_gene_length[r['species_id']] += int(r['gene_length'])
 	return total_gene_length
@@ -262,10 +252,7 @@ def run_pipeline(args):
 
 	# read info files
 	species_info = args['iggdb'].species
-	marker_info = read_marker_info(args)
-	marker_info2 = args['iggdb'].marker_info
-	print(marker_info == marker_info2)
-
+	marker_info = args['iggdb'].marker_info
 
 	# align reads
 	start = time()
