@@ -23,11 +23,11 @@ class IGGdb:
             assert isdir(f"{self.iggdb_root}/pangenomes")
             assert isdir(f"{self.iggdb_root}/repgenomes")
             assert isdir(f"{self.iggdb_root}/marker_genes")
-            marker_genes_fasta = f"{self.iggdb_root}/marker_genes/phyeco.fa"
-            marker_genes_map = f"{self.iggdb_root}/marker_genes/phyeco.map"
+            self.marker_genes_fasta = f"{self.iggdb_root}/marker_genes/phyeco.fa"
+            self.marker_genes_map = f"{self.iggdb_root}/marker_genes/phyeco.map"
             marker_mapping_cutoffs = f"{self.iggdb_root}/marker_genes/phyeco.mapping_cutoffs"
-            assert isfile(marker_genes_fasta)
-            assert isfile(marker_genes_map)
+            assert isfile(self.marker_genes_fasta)
+            assert isfile(self.marker_genes_map)
             assert isfile(marker_mapping_cutoffs)
         except Exception as e:
             e.help_text = f"Unexpected MIDAS-IGGdb directory structure around {iggdb_toc_species}."
