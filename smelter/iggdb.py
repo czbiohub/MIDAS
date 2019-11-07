@@ -4,7 +4,7 @@ import time
 import json
 from os.path import isfile, isdir, dirname, abspath, basename
 from utilities import tsv_rows, parse_table, tsprint
-import subprocess, os
+import subprocess, os, Bio.SeqIO
 
 
 class IGGdb:
@@ -45,6 +45,7 @@ class IGGdb:
         self.species = {s['species_id']: s for s in self.species_info}
         self.genomes = {g['genome_id']: g for g in self.genome_info}
         self.marker_cutoffs = {m['marker_id']: float(m['mapid']) for m in self.marker_mapping_cutoffs}
+        self.marker_info = read_marker_info(self)
 
         for s in self.species_info:
             genome_id = s['representative_genome']
@@ -59,3 +60,13 @@ class IGGdb:
 
     def get_species(self, species_id, default=None):
         return self.species.get(species_id, default)
+
+    def read_marker_info(self):
+        """ Read info for marker genes from phyeco.fa """
+        marker_info = {}
+        for seq in Bio.SeqIO.parse(self.marker_genes_fasta):
+            marker_info[seq.id] = None
+        for m in parse_table(tsv_rows(self.marker_genes_map)):
+            if m['gene_id'] in marker_info:
+                marker_info[m['gene_id']] = m
+        return marker_info

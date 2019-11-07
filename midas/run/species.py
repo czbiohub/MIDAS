@@ -12,8 +12,6 @@ from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
 
 def read_marker_info(args):
-	""" Read info for marker genes from phyeco.fa """
-	## TODO: move this IGGdb
 	info = {}
 	for seq in Bio.SeqIO.parse('%s/marker_genes/phyeco.fa' % args['db'], 'fasta'):
 		info[seq.id] = None
@@ -265,7 +263,9 @@ def run_pipeline(args):
 	# read info files
 	species_info = args['iggdb'].species
 	marker_info = read_marker_info(args)
-	print("marker_info", marker_info)
+	marker_info2 = args['iggdb'].marker_info
+	print(marker_info == marker_info2)
+
 
 	# align reads
 	start = time()
