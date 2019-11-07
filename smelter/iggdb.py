@@ -45,7 +45,7 @@ class IGGdb:
         self.species = {s['species_id']: s for s in self.species_info}
         self.genomes = {g['genome_id']: g for g in self.genome_info}
         self.marker_cutoffs = {m['marker_id']: float(m['mapid']) for m in self.marker_mapping_cutoffs}
-        self.marker_info = read_marker_info(self)
+        self.marker_info = self.read_marker_info()
 
         for s in self.species_info:
             genome_id = s['representative_genome']
