@@ -10,6 +10,7 @@ from midas import utility
 from operator import itemgetter
 from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
+from utilities import tsv_rows, parse_table
 
 
 def read_marker_info(args):
