@@ -116,15 +116,10 @@ def assign_non_unique(args, alns, unique_alns, marker_info):
 
 def get_markers(args):
 	""" Read in optimal mapping parameters for marker genes; override if user has provided cutoff """
-	marker_cutoffs = {}
-	inpath = '/'.join([args['db'], 'marker_genes/phyeco.mapping_cutoffs'])
-	if not os.path.isfile(inpath): sys.exit("File not found: %s" % inpath)
-	for line in open(inpath):
-		marker_id, min_pid = line.rstrip().split()
-		if args['mapid']:
+	marker_cutoffs = args['iggdb'].marker_cutoffs
+	if args['mapid']:
+		for marker_id in marker_cutoffs.keys():
 			marker_cutoffs[marker_id] = args['mapid']
-		else:
-			marker_cutoffs[marker_id] = float(min_pid)
 	return marker_cutoffs
 
 def read_gene_lengths(args, species_info, marker_info):
