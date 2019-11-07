@@ -61,6 +61,7 @@ def find_best_hits(args, marker_info):
 	""" Find top scoring alignment for each read """
 	best_hits = {}
 	marker_cutoffs = get_markers(args)
+	print("find_best_hits:", marker_cutoffs)
 	i = 0
 	qcovs = []
 	for aln in parse_blast('%s/species/temp/alignments.m8' % args['outdir']):
