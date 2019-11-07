@@ -12,6 +12,16 @@ from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
 
 
+def read_marker_info(args):
+	""" Read info for marker genes from phyeco.fa """
+	marker_info = {}
+	for seq in Bio.SeqIO.parse(args['iggdb'].marker_genes_fasta, 'fasta'):
+		marker_info[seq.id] = None
+	for m in parse_table(tsv_rows(args['iggdb'].marker_genes_map)):
+		if m['gene_id'] in marker_info:
+			marker_info[m['gene_id']] = m
+	return marker_info
+
 def map_reads_hsblast(args):
 	""" Use hs-blastn to map reads in fasta file to marker database """
 	# stream sequences
@@ -251,7 +261,7 @@ def run_pipeline(args):
 
 	# read info files
 	species_info = args['iggdb'].species
-	marker_info = args['iggdb'].marker_info
+	marker_info = read_marker_info(args)
 
 	# align reads
 	start = time()
