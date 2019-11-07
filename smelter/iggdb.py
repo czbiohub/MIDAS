@@ -54,8 +54,6 @@ class IGGdb:
                 command = "lz4 -d %s.lz4" % s['repgenome_path']
                 subprocess.Popen(command, shell=True)
             s['pangenome_path'] = f"{self.iggdb_root}/pangenomes/{s['species_alt_id']}"
-            ## What does marker_genes_database looks like? What does the information organized?
-            ## How it is being used?? Does it belong to Species or Genomes?
 
     def get_species(self, species_id, default=None):
         return self.species.get(species_id, default)
