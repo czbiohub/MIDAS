@@ -116,7 +116,6 @@ def read_gene_lengths(args, species_info, marker_info):
 	""" Read in total gene length per species_id """
 	total_gene_length = dict([(_,0) for _ in species_info])
 	for r in marker_info.values():
-		# Read in all the marker_genes map for each genome. Move to Genome.get_marker_genes()
 		if r['species_id'] in total_gene_length.keys():
 			total_gene_length[r['species_id']] += int(r['gene_length'])
 	return total_gene_length
