@@ -9,6 +9,7 @@ from collections import defaultdict
 from time import time
 from midas import utility
 from smelter.iggdb import IGGdb
+from utilities import tsv_rows, parse_table
 
 class Species:
     """ Base class for species """
