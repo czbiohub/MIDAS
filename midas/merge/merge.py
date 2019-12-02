@@ -78,7 +78,6 @@ def init_samples(indirs, data_type):
 	samples = []
 	for dir in indirs:
 		sample = Sample(dir, data_type)
-		print("init_samples:", sample.dir, sample.id, sample.info)
 		if sample.info is None:
 			pass
 			sys.stderr.write("Warning: missing/incomplete output: %s\n" % dir)
@@ -147,7 +146,6 @@ def filter_species(species, args):
 
 def select_species(args, dtype):
 	""" Select all species with a minimum number of high-coverage samples"""
-	print("select_species:", args)
 	samples = init_samples(args['indirs'], dtype)
 	species = init_species(samples, args, dtype)
 	species = filter_species(species, args)
