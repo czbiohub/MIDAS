@@ -5,7 +5,8 @@
 # Freely distributed under the GNU General Public License (GPLv3)
 
 import os, sys, numpy as np
-from midas.run import species
+from smelter.iggdb import IGGdb
+#from midas.run import species
 
 class Sample:
 	""" Base class for samples """
@@ -151,7 +152,7 @@ def run_pipeline(args):
 	# read info files
 	species_info = args['iggdb'].species
 	#species_info = species.read_annotations(args)
-	
+
 	# read in data & compute stats
 	data = store_data(args, samples, species_info)
 	stats = compute_stats(args, data)
