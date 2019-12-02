@@ -91,7 +91,7 @@ def write_stats(args, stats):
 def identify_samples(args):
 	samples = []
 	for sample in init_samples(args['indirs']):
-		print("identify_samples:", sample)
+		print("identify_samples:", sample.id)
 		if not sample.path:
 			sys.stderr.write("Warning: no species profile for %s\n" % sample.dir)
 		elif sample.id in [s.id for s in samples]:
