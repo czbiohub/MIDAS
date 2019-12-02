@@ -19,7 +19,7 @@ def init_samples(indirs):
 	""" Initialize samples """
 	samples = []
 	for sample_dir in indirs:
-		species_profile = '%s/species/species_profile.txt' % sample_dir
+		species_profile = '%s/results/species/species_profile.txt' % sample_dir
 		if not os.path.exists(species_profile):
 			sys.stderr.write("Warning: missing/incomplete output: %s\n" % sample_dir)
 		else:
