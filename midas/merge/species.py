@@ -142,6 +142,7 @@ Additional information for each species can be found in the reference database:
 
 def run_pipeline(args):
 	# list samples and species
+	print("run_pipeline:", args)
 	samples = identify_samples(args)
 
 	if 'db' in args:
