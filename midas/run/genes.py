@@ -9,6 +9,7 @@ from collections import defaultdict
 from time import time
 from midas import utility
 from smelter.iggdb import IGGdb
+from utilities import tsv_rows, parse_table
 
 class Species:
     """ Base class for species """
@@ -23,8 +24,6 @@ class Species:
     def fetch_paths(self, iggdb):
         self.pangenome_path = iggdb.get_species(species_id=self.id)['pangenome_path']
 
-    # TODO:  centroids.ffn => centroids.fa
-    # TODO:  create gene_info.txt
     def paths(self, file):
         return f"{self.pangenome_path}/{file}"
 
@@ -66,21 +65,17 @@ def initialize_genes(args, species):
     for sp in species.values():
         path = sp.paths('centroids.ffn')
         file = utility.iopen(path)
-        for seq in Bio.SeqIO.parse(file, 'fasta'):
-            genes[seq.id] = Gene(seq.id)
-            genes[seq.id].species_id = sp.id
-            genes[seq.id].length = len(seq.seq)
+        for centroid in Bio.SeqIO.parse(file, 'fasta'):
+            genes[centroid.id] = Gene(centroid.id)
+            genes[centroid.id].species_id = sp.id
+            genes[centroid.id].length = len(centroid.seq)
             sp.pangenome_size += 1
         file.close()
-    ## TODO: move this IGGdb
-    # fetch marker_id
-    path = '%s/marker_genes/phyeco.map' % args['db']
-    file = utility.iopen(path)
-    reader = csv.DictReader(file, delimiter='\t')
-    for r in reader:
-        if r['gene_id'] in genes:
-            genes[r['gene_id']].marker_id=r['marker_id']
-    file.close()
+    # fetch marker_id: more like a marker_id_label
+    # TODO: this doesn't gaurantee label all the marker genes
+    for p in parse_table(tsv_rows(args['iggdb'].marker_genes_map)):
+        if p['gene_id'] in genes:
+            genes[p['gene_id']].marker_id = p['marker_id']
     return genes
 
 def build_pangenome_db(args, species):
@@ -208,6 +203,7 @@ def count_mapped_bp(args, species, genes):
 def normalize(args, species, genes):
     """ Count number of bp mapped to each marker gene """
     # compute marker depth
+    ## TOAsk: SCG why += gene.depth?
     for gene in genes.values():
         if gene.marker_id is not None:
             species[gene.species_id].markers[gene.marker_id] += gene.depth

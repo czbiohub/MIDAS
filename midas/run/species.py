@@ -10,26 +10,18 @@ from midas import utility
 from operator import itemgetter
 from smelter.iggdb import IGGdb
 from smelter.utilities import tsprint
+from utilities import tsv_rows, parse_table
 
-
-def read_annotations(args):
-	# this should be a function insides IGGdb
-	info = {}
-	iggdb = args['iggdb']
-	for s in iggdb.species_info[:10]:
-		info[s['species_id']] = s
-	return info
 
 def read_marker_info(args):
 	""" Read info for marker genes from phyeco.fa """
-	## TODO: move this IGGdb
-	info = {}
-	for seq in Bio.SeqIO.parse('%s/marker_genes/phyeco.fa' % args['db'], 'fasta'):
-		info[seq.id] = None
-	for r in utility.parse_file('%s/marker_genes/phyeco.map' % args['db']):
-		if r['gene_id'] in info:
-			info[r['gene_id']] = r
-	return info
+	marker_info = {}
+	for seq in Bio.SeqIO.parse(args['iggdb'].marker_genes_fasta, 'fasta'):
+		marker_info[seq.id] = None
+	for m in parse_table(tsv_rows(args['iggdb'].marker_genes_map)):
+		if m['gene_id'] in marker_info:
+			marker_info[m['gene_id']] = m
+	return marker_info
 
 def map_reads_hsblast(args):
 	""" Use hs-blastn to map reads in fasta file to marker database """
@@ -44,7 +36,7 @@ def map_reads_hsblast(args):
 	command += ' | %s align' % args['hs-blastn']
 	command += ' -word_size %s' % args['word_size']
 	command += ' -query /dev/stdin'
-	command += ' -db %s/marker_genes/phyeco.fa' % args['db']
+	command += ' -db %s' % args['iggdb'].marker_genes_fasta
 	command += ' -outfmt 6'
 	command += ' -num_threads %s' % args['threads']
 	command += ' -out %s/species/temp/alignments.m8' % args['outdir']
@@ -125,23 +117,16 @@ def assign_non_unique(args, alns, unique_alns, marker_info):
 
 def get_markers(args):
 	""" Read in optimal mapping parameters for marker genes; override if user has provided cutoff """
-	marker_cutoffs = {}
-	inpath = '/'.join([args['db'], 'marker_genes/phyeco.mapping_cutoffs'])
-	if not os.path.isfile(inpath): sys.exit("File not found: %s" % inpath)
-	for line in open(inpath):
-		marker_id, min_pid = line.rstrip().split()
-		if args['mapid']:
+	marker_cutoffs = args['iggdb'].marker_cutoffs
+	if args['mapid']:
+		for marker_id in marker_cutoffs.keys():
 			marker_cutoffs[marker_id] = args['mapid']
-		else:
-			marker_cutoffs[marker_id] = float(min_pid)
 	return marker_cutoffs
 
 def read_gene_lengths(args, species_info, marker_info):
 	""" Read in total gene length per species_id """
 	total_gene_length = dict([(_,0) for _ in species_info])
 	for r in marker_info.values():
-		# Read in all the marker_genes map for each genome. Move to Genome.get_marker_genes()
-		# temp fix: marker_genes_all AND pangenome_test
 		if r['species_id'] in total_gene_length.keys():
 			total_gene_length[r['species_id']] += int(r['gene_length'])
 	return total_gene_length
@@ -276,7 +261,7 @@ def run_pipeline(args):
 			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
 
 	# read info files
-	species_info = read_annotations(args)
+	species_info = args['iggdb'].species
 	marker_info = read_marker_info(args)
 
 	# align reads
