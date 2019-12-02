@@ -78,6 +78,7 @@ def init_samples(indirs, data_type):
 	samples = []
 	for dir in indirs:
 		sample = Sample(dir, data_type)
+		print("init_samples:", sample)
 		if sample.info is None:
 			pass
 			sys.stderr.write("Warning: missing/incomplete output: %s\n" % dir)
