@@ -151,7 +151,7 @@ def snps_arguments():
 		formatter_class=argparse.RawTextHelpFormatter,
 		usage=argparse.SUPPRESS,
 		description="""
-Description: perform multi-sample core-genome SNP calling 
+Description: perform multi-sample core-genome SNP calling
 
 The pipeline can be broken down into the following steps:
   1) take MIDAS output files from multiple samples
@@ -206,7 +206,7 @@ By default, the MIDAS_DB environmental variable is used""")
 		help="""Same as: --snp_type bi --site_prev 0.0""")
 	snps.add_argument('--all_sites', action='store_true',
 		help="""Same as: --snp_type any --site_prev 0.0""")
-			
+
 	species = parser.add_argument_group("Species filters (select subset of species from INPUT)")
 	species.add_argument('--min_samples', type=int, default=1, metavar='INT',
 		help="""All species with >= MIN_SAMPLES (1)""")
@@ -214,7 +214,7 @@ By default, the MIDAS_DB environmental variable is used""")
 		help="""Comma-separated list of species ids""")
 	species.add_argument('--max_species', type=int, metavar='INT',
 		help="""Maximum number of species to call SNPs for (all with >= 1 sample)""")
-	
+
 	sample = parser.add_argument_group("Sample filters (select subset of samples from INPUT)")
 	sample.add_argument('--sample_depth', dest='sample_depth', type=float, default=5.0, metavar='FLOAT',
 		help="""Minimum average read depth per sample (5.0)""")
@@ -224,7 +224,7 @@ By default, the MIDAS_DB environmental variable is used""")
 		help="""Maximum number of samples to process. useful for quick tests (use all)""")
 	sample.add_argument('--all_samples', default=False, action='store_true',
 		help="""Include all samples in output""")
-		
+
 	snps = parser.add_argument_group("Site filters (select subset of genomic sites from INPUT)")
 	snps.add_argument('--snp_type', choices=['any','mono', 'bi', 'tri', 'quad'], nargs='+', default=['bi'], metavar="",
 		help="""Specify one or more of the following:
@@ -284,10 +284,10 @@ def check_arguments(program, args):
 
 	if program not in ['species', 'snps', 'genes']:
 		sys.exit("\nError: Unrecognized program: '%s'\n" % program)
-		
+
 	if platform.system() not in ['Linux', 'Darwin']:
 		sys.exit("\nError: Operating system '%s' not supported\n" % system())
-	
+
 	for arg in ['allele_freq', 'fract_cov', 'site_prev']:
 		if arg in args and args[arg] and (args[arg] < 0 or args[arg] > 1):
 			sys.exit("\nError: --%s must be between 0.0 and 1.0\n" % arg)
@@ -422,6 +422,7 @@ def run_program(program, args):
 	""" Run program specified by user (species, genes, or snps) """
 	if program == 'species':
 		from midas.merge import species
+        print(args)
 		species.run_pipeline(args)
 	elif program == 'genes':
 		from midas.merge import genes
@@ -439,6 +440,3 @@ if __name__ == '__main__':
 	utility.print_copyright()
 	print_arguments(program, args)
 	run_program(program, args)
-
-
-
