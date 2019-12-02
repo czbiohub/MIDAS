@@ -110,11 +110,11 @@ Description of output files and file formats from 'merge_midas.py species'
 
 Output files
 ############
-count_reads.txt  
+count_reads.txt
   number of reads mapped to 15 marker genes per species
-coverage.txt  
+coverage.txt
   average read-depth of 15 marker genes per species (total bp of mapped reads/total bp of 15 marker-genes)
-relative_abundance.txt  
+relative_abundance.txt
   values from coverage.txt scaled to sum to 1.0 across species per sample
 species_prevalence.txt
   summary stats across species
@@ -141,7 +141,17 @@ Additional information for each species can be found in the reference database:
 def run_pipeline(args):
 	# list samples and species
 	samples = identify_samples(args)
-	species_info = species.read_annotations(args)
+
+	if 'db' in args:
+		if args.get('dbtoc'):
+			args['iggdb'] = IGGdb(f"{args['dbtoc']}")
+		else:
+			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
+
+	# read info files
+	species_info = args['iggdb'].species
+	#species_info = species.read_annotations(args)
+	
 	# read in data & compute stats
 	data = store_data(args, samples, species_info)
 	stats = compute_stats(args, data)
@@ -150,4 +160,3 @@ def run_pipeline(args):
 	write_stats(args, stats)
 	# write readme
 	write_readme(args)
-	
