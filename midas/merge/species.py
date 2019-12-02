@@ -6,7 +6,7 @@
 
 import os, sys, numpy as np
 from smelter.iggdb import IGGdb
-#from midas.run import species
+from midas.run.species import read_abundance
 
 class Sample:
 	""" Base class for samples """
@@ -33,7 +33,7 @@ def store_data(args, samples, species_ids):
 		for field in ['relative_abundance', 'coverage', 'count_reads']:
 			data[species_id][field] = []
 	for sample in samples:
-		abundance = species.read_abundance(sample.path)
+		abundance = read_abundance(sample.path)
 		for species_id, values in abundance.items():
 			for field in ['relative_abundance', 'coverage', 'count_reads']:
 				if field in values: # temporary fix
