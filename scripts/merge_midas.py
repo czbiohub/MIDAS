@@ -422,7 +422,7 @@ def run_program(program, args):
 	""" Run program specified by user (species, genes, or snps) """
 	if program == 'species':
 		from midas.merge import species
-        print(args)
+		print(args)
 		species.run_pipeline(args)
 	elif program == 'genes':
 		from midas.merge import genes
