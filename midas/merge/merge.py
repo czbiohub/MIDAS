@@ -146,7 +146,7 @@ def filter_species(species, args):
 
 def select_species(args, dtype):
 	""" Select all species with a minimum number of high-coverage samples"""
-    print("select_species:", args)
+	print("select_species:", args)
 	samples = init_samples(args['indirs'], dtype)
 	species = init_species(samples, args, dtype)
 	species = filter_species(species, args)
