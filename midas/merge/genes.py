@@ -89,7 +89,7 @@ Additional information for species can be found in the reference database:
 """ % (args['db'], sp.id) )
 	outfile.close()
 
-def read_cluster_map(sp, iggdb, pid):
+def read_cluster_map(sp, iggdb, pid, db):
 	sp.map = {}
 	for ext in ['', '.gz']:
 		pangenome_path = iggdb.get_species(species_id=sp.id)['pangenome_path']
@@ -125,7 +125,7 @@ def run_pipeline(args):
 		if not os.path.isdir(species.dir):
 			os.mkdir(species.dir)
 
-		read_cluster_map(species, args['iggdb'], args['cluster_pid'])
+		read_cluster_map(species, args['iggdb'], args['cluster_pid'], args['db'])
 
 		print("    building pangenome matrices")
 		build_gene_matrices(species, min_copy=args['min_copy'])
