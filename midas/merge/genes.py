@@ -89,10 +89,13 @@ Additional information for species can be found in the reference database:
 """ % (args['db'], sp.id) )
 	outfile.close()
 
-def read_cluster_map(sp, db, pid):
+def read_cluster_map(sp, iggdb, pid):
 	sp.map = {}
 	for ext in ['', '.gz']:
-		path = '/'.join([db, 'pan_genomes', sp.id, 'gene_info.txt%s' % ext])
+		pangenome_path = iggdb.get_species(species_id=sp.id)['pangenome_path']
+		path = "%s/%s" % (pangenome_path, "gene_info.txt")
+		path_old = '/'.join([db, 'pan_genomes', sp.id, 'gene_info.txt%s' % ext])
+		print("GENES:read_cluster_map:", pangenome_path, path_old)
 		if os.path.isfile(path):
 			sp.gene_info = path
 	for r in utility.parse_file(sp.gene_info):
@@ -110,8 +113,6 @@ def run_pipeline(args):
 	print("MERGE_GENES_PIPELINE: Identifying species and samples")
 	species_list = merge.select_species(args, dtype='genes')
 	for species in species_list:
-		print("  %s" % species.id)
-		print("  %s" % species.info)
 		print("  Missing functionality: midas.build.build_db.read_species():count_genomes")
 		#print("    count genomes: %s" % species.info['count_genomes'])
 		print("    count samples: %s" % len(species.samples))
@@ -121,8 +122,10 @@ def run_pipeline(args):
 
 		print("  %s" % species.id)
 		species.dir = os.path.join(args['outdir'], species.id)
-		if not os.path.isdir(species.dir): os.mkdir(species.dir)
-		read_cluster_map(species, args['db'], args['cluster_pid'])
+		if not os.path.isdir(species.dir):
+			os.mkdir(species.dir)
+
+		read_cluster_map(species, args['iggdb'], args['cluster_pid'])
 
 		print("    building pangenome matrices")
 		build_gene_matrices(species, min_copy=args['min_copy'])
