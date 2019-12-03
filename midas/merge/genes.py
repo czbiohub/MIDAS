@@ -111,10 +111,11 @@ def run_pipeline(args):
 	species_list = merge.select_species(args, dtype='genes')
 	for species in species_list:
 		print("  %s" % species.id)
+		print("  %s" % species.genome_info)
 		print("    count genomes: %s" % species.info['count_genomes'])
 		print("    count samples: %s" % len(species.samples))
 
-	print("\nMerging genes")
+	print("\nMERGE_GENES_PIPELINE: Merging genes")
 	for species in species_list:
 
 		print("  %s" % species.id)
