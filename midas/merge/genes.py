@@ -18,7 +18,7 @@ def build_gene_matrices(sp, min_copy):
 		inpath = '%s/genes/output/%s.genes.gz' % (sample.dir, sp.id)
 		for r in utility.parse_file(inpath):
 			if 'ref_id' in r: r['gene_id'] = r['ref_id'] # fix old fields if present
-			if 'normalized_coverage' in r: r['copy_number'] = r['normalized_coverage'] 
+			if 'normalized_coverage' in r: r['copy_number'] = r['normalized_coverage']
 			if 'raw_coverage' in r: r['coverage'] = r['raw_coverage']
 			gene_id = sp.map[r['gene_id']]
 			sample.genes['copynum'][gene_id] += float(r['copy_number'])
@@ -54,12 +54,12 @@ Description of output files and file formats from 'merge_midas.py genes'
 
 Output files
 ############
-genes_depth.txt  
+genes_depth.txt
   average-read depth of each gene per sample
 genes_copynum.txt
   copy-number of each gene per sample
   estimated by dividing the read-depth of a gene by the median read-depth of 15 universal single copy genes
-genes_presabs.txt  
+genes_presabs.txt
   the presence (1) or absence (0) of each gene per sample
   estimated by applying a threshold to gene copy-number values
 genes_reads.txt
@@ -99,21 +99,21 @@ def read_cluster_map(sp, db, pid):
 
 def run_pipeline(args):
 
-	print("Identifying species and samples")
+	print("MERGE_GENES_PIPELINE: Identifying species and samples")
 	species_list = merge.select_species(args, dtype='genes')
 	for species in species_list:
 		print("  %s" % species.id)
 		print("    count genomes: %s" % species.info['count_genomes'])
 		print("    count samples: %s" % len(species.samples))
-		
+
 	print("\nMerging genes")
 	for species in species_list:
-			
+
 		print("  %s" % species.id)
 		species.dir = os.path.join(args['outdir'], species.id)
 		if not os.path.isdir(species.dir): os.mkdir(species.dir)
 		read_cluster_map(species, args['db'], args['cluster_pid'])
-			
+
 		print("    building pangenome matrices")
 		build_gene_matrices(species, min_copy=args['min_copy'])
 		write_gene_matrices(species)
@@ -122,7 +122,4 @@ def run_pipeline(args):
 		species.write_sample_info(dtype='genes', outdir=args['outdir'])
 
 		write_readme(args, species)
-		
 		print("    done!")
-
-
