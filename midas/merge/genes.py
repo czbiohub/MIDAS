@@ -101,6 +101,7 @@ def read_cluster_map(sp, iggdb, pid):
 
 def run_pipeline(args):
 
+	print("run_pipeline: ", args)
 	if 'db' in args:
 		if args.get('dbtoc'):
 			args['iggdb'] = IGGdb(f"{args['dbtoc']}")
