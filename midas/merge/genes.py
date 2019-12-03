@@ -90,14 +90,15 @@ Additional information for species can be found in the reference database:
 """ % (args['db'], sp.id) )
 	outfile.close()
 
-def read_cluster_map(sp, iggdb, pid, db):
+def read_cluster_map(sp, iggdb, pid):
 	sp.map = {}
 	for ext in ['', '.gz']:
 		path = "%s/%s%s" % (iggdb.get_species(species_id=sp.id)['pangenome_path'], "gene_info.txt", ext)
 		if os.path.isfile(path):
 			sp.gene_info = path
 	for r in utility.parse_file(sp.gene_info):
-		sp.map[r['centroid_99']] =  r['centroid_%s' % pid]
+		print(r)
+		sp.map[r['centroid_99']] =  r['centroid_%s' % (pid)]
 
 def run_pipeline(args):
 
