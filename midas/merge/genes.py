@@ -17,7 +17,6 @@ def build_gene_matrices(sp, min_copy):
 		for field, dtype in [('presabs',float), ('copynum',float), ('depth',float), ('reads',int)]:
 			sample.genes[field] = defaultdict(dtype)
 		inpath = '%s/genes/output/%s.genes.gz' % (sample.dir, sp.id)
-		print("build_gene_matrices:", inpath)
 		for r in utility.parse_file(inpath):
 			if 'ref_id' in r: r['gene_id'] = r['ref_id'] # fix old fields if present
 			if 'normalized_coverage' in r: r['copy_number'] = r['normalized_coverage']
@@ -94,6 +93,7 @@ def read_cluster_map(sp, iggdb, pid):
 	sp.map = {}
 	for ext in ['', '.gz']:
 		path = "%s/%s%s" % (iggdb.get_species(species_id=sp.id)['pangenome_path'], "gene_info.txt", ext)
+		print("path:", path)
 		if os.path.isfile(path):
 			sp.gene_info = path
 	for r in utility.parse_file(sp.gene_info):
