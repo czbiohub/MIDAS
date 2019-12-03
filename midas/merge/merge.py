@@ -6,6 +6,7 @@
 
 import os, sys, csv
 from midas import utility
+from smelter.iggdb import IGGdb
 
 class Species:
 	""" Base class for species """
