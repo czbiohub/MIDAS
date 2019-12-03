@@ -124,7 +124,7 @@ def run_pipeline(args):
 		if not os.path.isdir(species.dir):
 			os.mkdir(species.dir)
 
-		read_cluster_map(species, args['iggdb'], args['cluster_pid'], args['db'])
+		read_cluster_map(species, args['iggdb'], args['cluster_pid'])
 
 		print("MERGE_GENES_PIPELINE:    building pangenome matrices")
 		build_gene_matrices(species, min_copy=args['min_copy'])
