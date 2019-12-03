@@ -93,7 +93,6 @@ def read_cluster_map(sp, iggdb, pid):
 	sp.map = {}
 	for ext in ['', '.gz']:
 		path = "%s/%s%s" % (iggdb.get_species(species_id=sp.id)['pangenome_path'], "gene_info.txt", ext)
-		print("path:", path)
 		if os.path.isfile(path):
 			sp.gene_info = path
 	for r in utility.parse_file(sp.gene_info):
