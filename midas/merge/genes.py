@@ -112,7 +112,7 @@ def run_pipeline(args):
 	for species in species_list:
 		print("  %s" % species.id)
 		print("  %s" % species.info)
-		print("  %s" % species.samples)
+		print("  %s" % len(species.samples))
 		print("    count genomes: %s" % species.info['count_genomes'])
 		print("    count samples: %s" % len(species.samples))
 
