@@ -93,8 +93,8 @@ def read_cluster_map(sp, iggdb, pid, db):
 	sp.map = {}
 	for ext in ['', '.gz']:
 		pangenome_path = iggdb.get_species(species_id=sp.id)['pangenome_path']
-		path = "%s/%s" % (pangenome_path, "gene_info.txt")
-		path_old = '/'.join([db, 'pan_genomes', sp.id, 'gene_info.txt%s' % ext])
+		path = "%s/%s%s" % (pangenome_path, "gene_info.txt", ext)
+		path_old = '/'.join([db, sp.id, 'gene_info.txt%s' % ext])
 		print("GENES:read_cluster_map:", path, path_old)
 		if os.path.isfile(path):
 			sp.gene_info = path
