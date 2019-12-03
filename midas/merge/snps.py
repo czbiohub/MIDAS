@@ -498,7 +498,7 @@ def run_pipeline(args):
 	print("Identifying species and samples")
 	if 'db' in args:
 		args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
-	
+
 	global species_list
 	species_list = merge.select_species(args, dtype='snps')
 	for species in species_list:
