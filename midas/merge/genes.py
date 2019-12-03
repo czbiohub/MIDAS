@@ -17,6 +17,7 @@ def build_gene_matrices(sp, min_copy):
 		for field, dtype in [('presabs',float), ('copynum',float), ('depth',float), ('reads',int)]:
 			sample.genes[field] = defaultdict(dtype)
 		inpath = '%s/genes/output/%s.genes.gz' % (sample.dir, sp.id)
+		print("build_gene_matrices:", inpath)
 		for r in utility.parse_file(inpath):
 			if 'ref_id' in r: r['gene_id'] = r['ref_id'] # fix old fields if present
 			if 'normalized_coverage' in r: r['copy_number'] = r['normalized_coverage']
@@ -124,12 +125,12 @@ def run_pipeline(args):
 
 		read_cluster_map(species, args['iggdb'], args['cluster_pid'], args['db'])
 
-		print("    building pangenome matrices")
+		print("MERGE_GENES_PIPELINE:    building pangenome matrices")
 		build_gene_matrices(species, min_copy=args['min_copy'])
 		write_gene_matrices(species)
 
-		print("    writing summary statistics")
+		print("MERGE_GENES_PIPELINE:    writing summary statistics")
 		species.write_sample_info(dtype='genes', outdir=args['outdir'])
 
 		write_readme(args, species)
-		print("    done!")
+		print("MERGE_GENES_PIPELINE:    done!")
