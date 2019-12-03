@@ -112,8 +112,8 @@ def run_pipeline(args):
 	for species in species_list:
 		print("  %s" % species.id)
 		print("  %s" % species.info)
-		print("  %s" % len(species.samples))
-		print("    count genomes: %s" % species.info['count_genomes'])
+		print("  Missing functionality: midas.build.build_db.read_species():count_genomes")
+		#print("    count genomes: %s" % species.info['count_genomes'])
 		print("    count samples: %s" % len(species.samples))
 
 	print("\nMERGE_GENES_PIPELINE: Merging genes")
