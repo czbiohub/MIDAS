@@ -97,7 +97,6 @@ def read_cluster_map(sp, iggdb, pid):
 		if os.path.isfile(path):
 			sp.gene_info = path
 	for r in utility.parse_file(sp.gene_info):
-		print(r)
 		sp.map[r['centroid_99']] =  r['centroid_%s' % (pid)]
 
 def run_pipeline(args):
