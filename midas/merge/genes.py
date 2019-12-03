@@ -99,6 +99,13 @@ def read_cluster_map(sp, db, pid):
 
 def run_pipeline(args):
 
+	if 'db' in args:
+		if args.get('dbtoc'):
+			args['iggdb'] = IGGdb(f"{args['dbtoc']}")
+		else:
+			args['iggdb'] = IGGdb(f"{args['db']}/metadata/species_info.tsv")
+
+
 	print("MERGE_GENES_PIPELINE: Identifying species and samples")
 	species_list = merge.select_species(args, dtype='genes')
 	for species in species_list:
