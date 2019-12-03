@@ -8,6 +8,7 @@ import argparse, sys, os, gzip
 from collections import defaultdict
 from midas import utility
 from midas.merge import merge
+from smelter.iggdb import IGGdb
 
 def build_gene_matrices(sp, min_copy):
 	""" Compute gene copy numbers for samples """
